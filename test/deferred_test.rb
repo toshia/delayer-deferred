@@ -15,7 +15,10 @@ describe(Delayer::Deferred) do
   def eval_all_events(delayer=Delayer)
     native = Thread.list
     yield if block_given?
-    delayer.run while not(delayer.empty? and (Thread.list - native).empty?)
+    while not(delayer.empty? and (Thread.list - native).empty?)
+      delayer.run
+      Thread.pass
+    end
   end
 
   it "defer with Deferred#next" do

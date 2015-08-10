@@ -15,7 +15,16 @@ module Delayer::Deferred
     def self.delayer
        ::Delayer end
 
+    def self.new(*args)
+      deferred = super(*args)
+      if block_given?
+        deferred.next(&Proc.new)
+      else
+        deferred end
+    end
+
     def initialize(follow = nil)
+      super()
       @follow = follow
       @backtrace = caller if ::Delayer::Deferred.debug end
 

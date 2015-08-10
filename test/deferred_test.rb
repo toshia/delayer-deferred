@@ -14,11 +14,12 @@ describe(Delayer::Deferred) do
 
   def eval_all_events(delayer=Delayer)
     native = Thread.list
-    yield if block_given?
+    result = yield if block_given?
     while not(delayer.empty? and (Thread.list - native).empty?)
       delayer.run
       Thread.pass
     end
+    result
   end
 
   it "defer with Deferred#next" do
@@ -75,6 +76,75 @@ describe(Delayer::Deferred) do
     end
     assert_equal uuid, result
     assert_equal false, failure
+  end
+
+  it "join Deferredable#next after end of previous Deferredable" do
+    succeed = failure = false
+    delayer = Delayer.generate_class
+    deferredable = eval_all_events(delayer) do
+      delayer.Deferred.new.next {
+        true
+      } end
+    eval_all_events(delayer) do
+      deferredable.next{ |value|
+        succeed = value
+      }.trap{ |exception|
+        failure = exception } end
+    assert_equal false, failure
+    assert succeed, "Deferred did not executed."
+  end
+
+  describe "Deferred.when" do
+    it "give 3 deferred" do
+      result = failure = false
+      delayer = Delayer.generate_class
+      eval_all_events(delayer) do
+        delayer.Deferred.when(
+          delayer.Deferred.new.next{ 1 },
+          delayer.Deferred.new.next{ 2 },
+          delayer.Deferred.new.next{ 3 }
+        ).next{ |values|
+          result = values
+        }.trap{ |exception|
+          failure = exception }  end
+      assert_equal false, failure
+      assert_equal [1,2,3], result
+    end
+
+    it "give that is not Deferredable" do
+      result = failure = false
+      delayer = Delayer.generate_class
+      assert_raises(TypeError) do
+        eval_all_events(delayer) do
+          delayer.Deferred.when(
+            delayer.Deferred.new.next{ 1 },
+            2,
+            delayer.Deferred.new.next{ 3 }
+          ).next{ |values|
+            result = values
+          }.trap{ |exception|
+            failure = exception } end end
+      assert_equal false, failure
+      assert_equal false, result
+    end
+
+    it "execute trap block if failed" do
+      result = failure = false
+      delayer = Delayer.generate_class
+      eval_all_events(delayer) do
+        delayer.Deferred.when(
+          delayer.Deferred.new.next{ 1 },
+          delayer.Deferred.new.next{ raise },
+          delayer.Deferred.new.next{ 3 }
+        ).next{ |values|
+          result = values
+        }.trap{ |exception|
+          failure = exception }  end
+      assert_kind_of RuntimeError, failure
+      assert_equal false, result
+    end
+
+
   end
 
   describe "Thread acts as deferred" do

@@ -29,14 +29,15 @@ module Delayer
     # [*follow] 他のDeferredオブジェクト
     # ==== Return
     # Deferred
-    def when(defer = nil, *follow)
-      return Delayer::Deferred::Deferred.new{ [] } if defer.nil?
-      defer.next{ |res|
-        self.when(*follow).next{ |follow_res|
-          [res] + follow_res
-        }
-      }
-    end
+    def when(defer, *follow)
+      raise TypeError, "Argument of Deferred.when must be Delayer::Deferred::Deferredable" unless defer.is_a? Delayer::Deferred::Deferredable
+      if follow.empty?
+        defer.next{|res| [res] }
+      else
+        remain = self.when(*follow)
+        defer.next do |res|
+          remain.next do |follow_res|
+            follow_res.unshift(res) end end end end
 
     # Kernel#systemを呼び出して、コマンドが成功たら成功するDeferredを返す。
     # 失敗した場合、trap{}ブロックには $? の値(Process::Status)か、例外が発生した場合それが渡される

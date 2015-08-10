@@ -3,6 +3,10 @@ module Delayer::Deferred
   class Deferred
     include Deferredable
 
+    def self.inherited(subclass)
+      subclass.extend(::Delayer::Deferred)
+    end
+
     def self.Thread
       @thread_class ||= gen_thread_class end
 
@@ -42,7 +46,3 @@ module Delayer::Deferred
     end
   end
 end
-
-
-
-

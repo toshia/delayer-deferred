@@ -143,8 +143,20 @@ describe(Delayer::Deferred) do
       assert_kind_of RuntimeError, failure
       assert_equal false, result
     end
+  end
 
-
+  describe "cancel" do
+    it "stops deferred chain" do
+      succeed = failure = false
+      delayer = Delayer.generate_class
+      eval_all_events(delayer) do
+        delayer.Deferred.new.next {
+          succeed = true
+        }.trap{ |exception|
+          failure = exception }.cancel end
+      assert_equal false, failure
+      assert_equal false, succeed, "Deferred executed."
+    end
   end
 
   describe "Thread acts as deferred" do

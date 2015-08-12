@@ -47,6 +47,23 @@ describe(Delayer::Deferred) do
 
   it "error handling" do
     succeed = failure = recover = false
+    uuid = SecureRandom.uuid
+    eval_all_events do
+      Delayer::Deferred::Deferred.new.next {
+        Delayer::Deferred.fail(uuid)
+      }.next {
+        succeed = true
+      }.trap { |value|
+        failure = value
+      }.next {
+        recover = true } end
+    refute succeed, "Raised exception but it was executed successed route."
+    assert_equal uuid, failure, "trap block takes incorrect value"
+    assert recover, "next block did not executed when after trap"
+  end
+
+  it "exception handling" do
+    succeed = failure = recover = false
     eval_all_events do
       Delayer::Deferred::Deferred.new.next {
         raise 'error test'

@@ -5,7 +5,7 @@ module Delayer::Deferred::Deferredable
   Callback = Struct.new(*%i<ok ng backtrace>)
   BackTrace = Struct.new(*%i<ok ng>)
   CallbackDefaultOK = lambda{ |x| x }
-  CallbackDefaultNG = Delayer::Deferred.method(:fail)
+  CallbackDefaultNG = lambda{ |err| Delayer::Deferred.fail(err) }
 
   # このDeferredが成功した場合の処理を追加する。
   # 新しいDeferredのインスタンスを返す

@@ -1,25 +1,12 @@
 # -*- coding: utf-8 -*-
 
-require 'bundler/setup'
-require 'minitest/autorun'
-
-require 'delayer/deferred'
-require 'securerandom'
-require 'set'
+require_relative 'helper'
 
 describe(Delayer::Deferred) do
+  include TestUtils
+
   before do
     Delayer.default = Delayer.generate_class
-  end
-
-  def eval_all_events(delayer=Delayer)
-    native = Thread.list
-    result = yield if block_given?
-    while not(delayer.empty? and (Thread.list - native).empty?)
-      delayer.run
-      Thread.pass
-    end
-    result
   end
 
   it "defer with Deferred#next" do

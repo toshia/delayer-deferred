@@ -3,6 +3,8 @@
 require_relative 'helper'
 
 describe(Thread) do
+  include TestUtils
+
   before do
     Delayer.default = Delayer.generate_class
   end

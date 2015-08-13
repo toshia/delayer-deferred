@@ -3,6 +3,8 @@
 require_relative 'helper'
 
 describe(Enumerable) do
+  include TestUtils
+
   before do
     @delayer = Delayer.generate_class
   end

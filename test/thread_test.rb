@@ -1,10 +1,6 @@
 # -*- coding: utf-8 -*-
 
-require 'bundler/setup'
-require 'minitest/autorun'
-
-require 'delayer/deferred'
-require 'securerandom'
+require_relative 'helper'
 
 describe(Thread) do
   before do

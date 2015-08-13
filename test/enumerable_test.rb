@@ -1,10 +1,6 @@
 # -*- coding: utf-8 -*-
 
-require 'bundler/setup'
-require 'minitest/autorun'
-
-require 'delayer/deferred'
-require 'timeout'
+require_relative 'helper'
 
 describe(Enumerable) do
   before do

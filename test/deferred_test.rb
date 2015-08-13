@@ -1,11 +1,6 @@
 # -*- coding: utf-8 -*-
 
-require 'bundler/setup'
-require 'minitest/autorun'
-
-require 'delayer/deferred'
-require 'securerandom'
-require 'set'
+require_relative 'helper'
 
 describe(Delayer::Deferred) do
   before do

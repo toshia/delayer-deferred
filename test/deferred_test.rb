@@ -176,6 +176,33 @@ describe(Delayer::Deferred) do
     end
   end
 
+  describe "Deferredable#system" do
+    it "command successed" do
+      succeed = failure = false
+      delayer = Delayer.generate_class
+      eval_all_events(delayer) do
+        delayer.Deferred.system("ruby", "-e", "exit 0").next{ |value|
+          succeed = value
+        }.trap{ |exception|
+          failure = exception } end
+      assert_equal false, failure
+      assert succeed, "next block called"
+    end
+
+    it "command failed" do
+      succeed = failure = false
+      delayer = Delayer.generate_class
+      eval_all_events(delayer) do
+        delayer.Deferred.system("ruby", "-e", "exit 1").next{ |value|
+          succeed = value
+        }.trap{ |exception|
+          failure = exception } end
+      refute succeed, "next block did not called"
+      assert failure.exited?, "command exited"
+      assert_equal 1, failure.exitstatus, "command exit status is 1"
+    end
+  end
+
   describe "Thread acts as deferred" do
     it "defer with Deferred#next" do
       thread = succeed = result = false
@@ -213,6 +240,24 @@ describe(Delayer::Deferred) do
     end
 
     it "error handling" do
+      delayer = Delayer.generate_class
+      succeed = failure = recover = false
+      uuid = SecureRandom.uuid
+      eval_all_events(delayer) do
+        delayer.Deferred.Thread.new {
+          Delayer::Deferred.fail(uuid)
+        }.next {
+          succeed = true
+        }.trap { |value|
+          failure = value
+        }.next {
+          recover = true } end
+      refute succeed, "Raised exception but it was executed successed route."
+      assert_equal uuid, failure, "trap block takes incorrect value"
+      assert recover, "next block did not executed when after trap"
+    end
+
+    it "exception handling" do
       succeed = failure = recover = false
       delayer = Delayer.generate_class
       eval_all_events(delayer) do

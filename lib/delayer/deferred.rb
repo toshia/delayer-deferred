@@ -48,16 +48,11 @@ module Delayer
     # ==== Return
     # Deferred
     def system(*args)
-      promise = Delayer::Deferred::Deferred.new(true)
-      Thread.new{
+      delayer.Deferred.Thread.new do
         if Kernel.system(*args)
-          promise.call(true)
+          $?
         else
-          promise.fail($?) end
-      }.trap{ |e|
-        promise.fail(e) }
-      promise
-    end
+          delayer.Deferred.fail($?) end end end
   end
 
   module Extend

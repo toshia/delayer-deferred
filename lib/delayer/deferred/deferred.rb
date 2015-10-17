@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 require "delayer/deferred/deferredable"
 require "delayer/deferred/tools"
+require "delayer/deferred/version"
 
 module Delayer::Deferred
   class Deferred

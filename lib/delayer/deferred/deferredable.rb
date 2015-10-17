@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+require "delayer/deferred/version"
 
 # なんでもDeferred
 module Delayer::Deferred::Deferredable

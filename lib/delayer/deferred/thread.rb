@@ -1,4 +1,7 @@
 # -*- coding: utf-8 -*-
+require "delayer"
+require "delayer/deferred/deferredable"
+
 class Thread
   include ::Delayer::Deferred::Deferredable
 

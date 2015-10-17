@@ -1,12 +1,12 @@
 # coding: utf-8
 require "delayer"
-require "delayer/deferred/version"
-require "delayer/deferred/deferredable"
 require "delayer/deferred/deferred"
-require "delayer/deferred/thread"
-require "delayer/deferred/enumerator"
+require "delayer/deferred/deferredable"
 require "delayer/deferred/enumerable"
+require "delayer/deferred/enumerator"
+require "delayer/deferred/thread"
 require "delayer/deferred/tools"
+require "delayer/deferred/version"
 
 module Delayer
   module Deferred

@@ -115,6 +115,21 @@ describe(Delayer::Deferred) do
       assert_equal [1,2,3], result
     end
 
+    it "default deferred" do
+      result = failure = false
+      eval_all_events do
+        Delayer::Deferred::Deferred.when(
+          Delayer::Deferred::Deferred.new.next{ 1 },
+          Delayer::Deferred::Deferred.new.next{ 2 },
+          Delayer::Deferred::Deferred.new.next{ 3 }
+        ).next{ |values|
+          result = values
+        }.trap{ |exception|
+          failure = exception }  end
+      assert_equal false, failure
+      assert_equal [1,2,3], result
+    end
+
     it "give that is not Deferredable" do
       result = failure = false
       delayer = Delayer.generate_class

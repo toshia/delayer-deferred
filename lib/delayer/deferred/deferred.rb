@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 module Delayer::Deferred
   class Deferred
+    extend Delayer::Deferred
     include Deferredable
 
     def self.inherited(subclass)

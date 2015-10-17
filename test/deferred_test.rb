@@ -162,6 +162,41 @@ describe(Delayer::Deferred) do
       assert_kind_of RuntimeError, failure
       assert_equal false, result
     end
+
+    it "no deferred given" do
+      result = failure = false
+      delayer = Delayer.generate_class
+      eval_all_events(delayer) do
+        delayer.Deferred.when().next{ |values|
+          result = values
+        }.trap{ |exception|
+          failure = exception }  end
+      assert_equal false, failure
+      assert_empty result
+    end
+
+    it "no deferred given for default delayer" do
+      result = failure = false
+      eval_all_events do
+        Delayer::Deferred::Deferred.when().next{ |values|
+          result = values
+        }.trap{ |exception|
+          failure = exception }  end
+      assert_equal false, failure
+      assert_empty result
+    end
+
+    it "no deferred given for delayer module" do
+      result = failure = false
+      eval_all_events do
+        Delayer::Deferred.when().next{ |values|
+          result = values
+        }.trap{ |exception|
+          failure = exception }  end
+      assert_equal false, failure
+      assert_empty result
+    end
+
   end
 
   describe "cancel" do

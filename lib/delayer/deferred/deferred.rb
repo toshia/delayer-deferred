@@ -1,7 +1,9 @@
 # -*- coding: utf-8 -*-
+require "delayer/deferred/tools"
+
 module Delayer::Deferred
   class Deferred
-    extend Delayer::Deferred
+    extend Delayer::Deferred::Tools
     include Deferredable
 
     def self.inherited(subclass)

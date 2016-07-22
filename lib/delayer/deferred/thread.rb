@@ -29,7 +29,8 @@ class Thread
             self.call(result)
             result
           rescue Exception => exception
-            self.fail(exception) end
+            self.fail(exception)
+            raise exception end
           throw :__deferredable_success end
         self.fail(failed) end end end
 end

@@ -9,6 +9,23 @@ describe(Thread) do
     Delayer.default = Delayer.generate_class
   end
 
+  describe 'Generic thread operation' do
+    describe 'Exception in thread' do
+      before do
+        @error = Class.new(RuntimeError)
+        @thread = Thread.new {
+          raise @error
+        }
+      end
+
+      it 'should takes the exception' do
+        assert_raises(@error) do
+          @thread.value
+        end
+      end
+    end
+  end
+
   it "defer with Deferred#next" do
     thread = succeed = result = false
     uuid = SecureRandom.uuid

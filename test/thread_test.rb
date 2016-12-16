@@ -75,7 +75,7 @@ describe(Thread) do
       }.next {
         recover = true } end
     refute succeed, "Raised exception but it was executed successed route."
-    assert_equal uuid, failure, "trap block takes incorrect value"
+    assert_kind_of UncaughtThrowError , failure, "trap block takes incorrect value"
     assert recover, "next block did not executed when after trap"
   end
 

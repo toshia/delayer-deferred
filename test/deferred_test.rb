@@ -218,7 +218,7 @@ describe(Delayer::Deferred) do
       succeed = failure = false
       delayer = Delayer.generate_class
       eval_all_events(delayer) do
-        delayer.Deferred.system("ruby", "-e", "exit 0").next{ |value|
+        delayer.Deferred.system("/bin/sh", "-c", "exit 0").next{ |value|
           succeed = value
         }.trap{ |exception|
           failure = exception } end
@@ -230,7 +230,7 @@ describe(Delayer::Deferred) do
       succeed = failure = false
       delayer = Delayer.generate_class
       eval_all_events(delayer) do
-        delayer.Deferred.system("ruby", "-e", "exit 1").next{ |value|
+        delayer.Deferred.system("/bin/sh", "-c", "exit 1").next{ |value|
           succeed = value
         }.trap{ |exception|
           failure = exception } end

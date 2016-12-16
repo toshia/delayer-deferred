@@ -43,10 +43,15 @@ module Delayer::Deferred
     # ==== Return
     # Deferred
     def system(*args)
-      delayer.Deferred.Thread.new do
-        if Kernel.system(*args)
-          $?
+      delayer.Deferred.Thread.new {
+        Process.waitpid2(Kernel.spawn(*args))
+      }.next{|_pid, status|
+        if status && status.success?
+          status
         else
-          delayer.Deferred.fail($?) end end end
+          delayer.Deferred.fail(status)
+        end
+      }
+    end
   end
 end

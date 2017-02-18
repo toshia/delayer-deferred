@@ -235,8 +235,9 @@ describe(Delayer::Deferred) do
         }.trap{ |exception|
           failure = exception } end
       refute succeed, "next block did not called"
-      assert failure.exited?, "command exited"
-      assert_equal 1, failure.exitstatus, "command exit status is 1"
+      assert_instance_of Delayer::Deferred::ForeignCommandAborted, failure
+      assert failure.process.exited?, "command exited"
+      assert_equal 1, failure.process.exitstatus, "command exit status is 1"
     end
   end
 end

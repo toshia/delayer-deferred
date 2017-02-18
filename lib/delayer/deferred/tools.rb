@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+require 'delayer/deferred/error'
 
 module Delayer::Deferred
   module Tools
@@ -47,6 +48,6 @@ module Delayer::Deferred
         if Kernel.system(*args)
           $?
         else
-          delayer.Deferred.fail($?) end end end
+          raise ForeignCommandAborted.new("command aborted: #{args.join(' ')}", process: $?) end end end
   end
 end

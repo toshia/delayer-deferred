@@ -67,7 +67,7 @@ describe(Thread) do
     uuid = SecureRandom.uuid
     eval_all_events(delayer) do
       delayer.Deferred.Thread.new {
-        Delayer::Deferred.fail(uuid)
+        raise uuid
       }.next {
         succeed = true
       }.trap { |value|
@@ -75,7 +75,8 @@ describe(Thread) do
       }.next {
         recover = true } end
     refute succeed, "Raised exception but it was executed successed route."
-    assert_equal uuid, failure, "trap block takes incorrect value"
+    assert_instance_of RuntimeError, failure, "trap block takes incorrect value"
+    assert_equal uuid, failure.message, "trap block takes incorrect value"
     assert recover, "next block did not executed when after trap"
   end
 

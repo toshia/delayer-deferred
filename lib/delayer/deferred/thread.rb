@@ -9,28 +9,34 @@ class Thread
     Delayer
   end
 
-  alias _deferredable_trap initialize
-  def initialize(*args, &proc)
-    _deferredable_trap(*args, &_deferredable_trap_proc(&proc)) end
+  def next(*rest, &block)
+    __gen_promise.next(*rest, &block)
+  end
 
-  alias :deferredable_cancel :cancel
-  def cancel
-    deferredable_cancel
-    kill end
+  def trap(*rest, &block)
+    __gen_promise.trap(*rest, &block)
+  end
 
   private
-  def _deferredable_trap_proc
-    proc = Proc.new
-    ->(*args) do
-      catch(:__deferredable_success) do
-        failed = catch(:__deferredable_fail) do
-          begin
-            result = proc.call(*args)
-            self.call(result)
-            result
-          rescue Exception => exception
-            self.fail(exception)
-            raise exception end
-          throw :__deferredable_success end
-        self.fail(failed) end end end
+
+  def __gen_promise
+    promise = delayer.Deferred.new(true)
+    Thread.new(self) do |tt|
+      __promise_callback(tt, promise)
+    end
+    promise
+  end
+
+  def __promise_callback(tt, promise)
+    failed = catch(:__deferredable_fail) do
+      begin
+        promise.call(tt.value)
+      rescue Exception => err
+        promise.fail(err)
+      end
+      return
+    end
+    promise.fail(failed)
+  end
+
 end

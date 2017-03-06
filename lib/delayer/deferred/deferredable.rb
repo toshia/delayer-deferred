@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 require "delayer/deferred/version"
+require "delayer/deferred/result_container"
 
 # なんでもDeferred
 module Delayer::Deferred::Deferredable
@@ -28,6 +29,19 @@ module Delayer::Deferred::Deferredable
   def fail(exception = nil)
     _call(:ng, exception) end
 
+  # _self_ が終了して結果が出るまで呼び出し側のDeferredを停止し、 _self_ の結果を返す。
+  # 呼び出し側はDeferredブロック内でなければならないが、 _Deferred#next_ を使わずに
+  # 直接戻り値を得ることが出来る。
+  # _self_ が失敗した場合は、呼び出し側のDeferredの直近の _trap_ ブロックが呼ばれる。
+  def +@
+    interrupt = Fiber.yield(self)
+    if interrupt.ok?
+      interrupt.value
+    else
+      Delayer::Deferred.fail(interrupt.value)
+    end
+  end
+
   # この一連のDeferredをこれ以上実行しない
   def cancel
     @callback = Callback.new(CallbackDefaultOK,
@@ -54,27 +68,62 @@ module Delayer::Deferred::Deferredable
   end
 
   def _call(stat = :ok, value = nil)
-    begin
-      catch(:__deferredable_success) do
+    fiber = Fiber.new do
+      begin
+        fail_flag = true
         failed = catch(:__deferredable_fail) do
-          n_value = _execute(stat, value)
-          if n_value.is_a? Delayer::Deferred::Deferredable
-            n_value.next{ |result|
-              @next.call(result)
-            }.trap{ |exception|
-              @next.fail(exception) }
-          else
-            if defined?(@next)
-              delayer.new{ @next.call(n_value) }
-            else
-              register_next_call(:ok, n_value) end end
-          throw :__deferredable_success end
-        _fail_action(failed) end
-    rescue Exception => exception
-      _fail_action(exception) end end
+          Fiber.yield(Delayer::Deferred::ResultContainer.new(true, _execute(stat, value)))
+          fail_flag = false
+        end
+        if fail_flag
+          Fiber.yield(Delayer::Deferred::ResultContainer.new(false, failed))
+        end
+      rescue Exception => exception
+        Fiber.yield(Delayer::Deferred::ResultContainer.new(false, exception))
+      end
+    end
+    _wait_fiber(fiber, nil)
+  end
 
   def _execute(stat, value)
-    callback[stat].call(value) end
+    callback[stat].call(value)
+  end
+
+  def _wait_fiber(fiber, resume_value)
+    result = fiber.resume(resume_value)
+    if result.is_a?(Delayer::Deferred::ResultContainer)
+      _fiber_completed(result)
+    else
+      _fiber_stopped(result){|i| _wait_fiber(fiber, i) }
+    end
+  end
+
+  # Deferredブロックが最後まで終わり、これ以上やることがない時に呼ばれる
+  def _fiber_completed(result)
+    result_value = result.value
+    if result.ok?
+      if result_value.is_a?(Delayer::Deferred::Deferredable)
+        result_value.next{|v|
+          delayer.new{ _success_action(v) }
+        }.trap{|v|
+          delayer.new{ _fail_action(v) }
+        }
+      else
+        _success_action(result_value)
+      end
+    else
+      _fail_action(result_value)
+    end
+  end
+
+  # Deferredable#@+によって停止され、 _defer_ の完了次第処理を再開する必要がある時に呼ばれる
+  def _fiber_stopped(defer, &cont)
+    defer.next{|v|
+      delayer.new{ cont.(Delayer::Deferred::ResultContainer.new(true, v)) }
+    }.trap{|v|
+      delayer.new{ cont.(Delayer::Deferred::ResultContainer.new(false, v)) }
+    }
+  end
 
   def _post(kind, &proc)
     @next = delayer.Deferred.new(self)
@@ -90,10 +139,20 @@ module Delayer::Deferred::Deferredable
     @next_call_stat, @next_call_value = stat, value
     self end
 
+  def _success_action(obj)
+    if defined?(@next)
+      delayer.new{ @next.call(obj) }
+    else
+      register_next_call(:ok, obj)
+    end
+  end
+
   def _fail_action(err_obj)
     if defined?(@next)
       delayer.new{ @next.fail(err_obj) }
     else
-      register_next_call(:ng, err_obj) end end
+      register_next_call(:ng, err_obj)
+    end
+  end
 
 end

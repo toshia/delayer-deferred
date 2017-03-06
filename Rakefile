@@ -6,3 +6,11 @@ Rake::TestTask.new do |t|
   t.warning = true
   t.verbose = true
 end
+
+task :benchmark do
+  FileList['test/*_benchmark.rb'].each{|f| load f }
+end
+
+task :profile do
+  FileList['test/*_profiler.rb'].each{|f| load f }
+end

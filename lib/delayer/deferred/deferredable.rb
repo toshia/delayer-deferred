@@ -4,7 +4,6 @@ require "delayer/deferred/version"
 # なんでもDeferred
 module Delayer::Deferred::Deferredable
   Callback = Struct.new(*%i<ok ng backtrace>)
-  BackTrace = Struct.new(*%i<ok ng>)
   CallbackDefaultOK = lambda{ |x| x }
   CallbackDefaultNG = lambda{ |err| Delayer::Deferred.fail(err) }
 
@@ -31,13 +30,11 @@ module Delayer::Deferred::Deferredable
   # この一連のDeferredをこれ以上実行しない
   def cancel
     @callback = Callback.new(CallbackDefaultOK,
-                             CallbackDefaultNG,
-                             BackTrace.new(nil, nil).freeze).freeze end
+                             CallbackDefaultNG).freeze end
 
   def callback
     @callback ||= Callback.new(CallbackDefaultOK,
-                               CallbackDefaultNG,
-                               BackTrace.new(nil, nil)) end
+                               CallbackDefaultNG) end
 
   # second 秒待って次を実行する
   # ==== Args
@@ -79,7 +76,6 @@ module Delayer::Deferred::Deferredable
   def _post(kind, &proc)
     @next = delayer.Deferred.new(self)
     @next.callback[kind] = proc
-    @next.callback.backtrace[kind] = caller(1)
     if defined?(@next_call_stat) and defined?(@next_call_value)
       @next.__send__({ok: :call, ng: :fail}[@next_call_stat], @next_call_value)
     elsif defined?(@follow) and @follow.nil?

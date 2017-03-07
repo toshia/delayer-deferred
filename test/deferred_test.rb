@@ -78,8 +78,8 @@ describe(Delayer::Deferred) do
       }.trap{ |exception|
         failure = exception }
     end
-    assert_equal uuid, result
     assert_equal false, failure
+    assert_equal uuid, result
   end
 
   it "join Deferredable#next after end of previous Deferredable" do
@@ -238,6 +238,52 @@ describe(Delayer::Deferred) do
       assert_instance_of Delayer::Deferred::ForeignCommandAborted, failure
       assert failure.process.exited?, "command exited"
       assert_equal 1, failure.process.exitstatus, "command exit status is 1"
+    end
+  end
+
+  describe 'Deferredable#+@' do
+    it 'stops +@ deferred chain, then it returns result after receiver completed' do
+      delayer = Delayer.generate_class
+      log = Array.new
+      eval_all_events(delayer) do
+        delayer.Deferred.new.next{
+          log << :a1
+          b = delayer.Deferred.new.next{
+            log << :b1 << +delayer.Deferred.new.next{
+              log << :c1 << +delayer.Deferred.new.next{
+                log << :d1
+                :d2
+              }
+              :c2
+            }
+            :b2
+          }
+          log << :a2 << +b << :a3
+        }
+      end
+
+      assert_equal [:a1, :a2, :b1, :c1, :d1, :d2, :c2, :b2, :a3], log, 'incorrect call order'
+    end
+
+    it 'fails receiver of +@, then fails callee Deferred' do
+      delayer = Delayer.generate_class
+      log = Array.new
+      eval_all_events(delayer) do
+        delayer.Deferred.new.next{
+          log << :a1
+          b = delayer.Deferred.new.next{
+            log << :b1
+            delayer.Deferred.fail(:be)
+            :b2
+          }
+          log << :a2 << +b << :a3
+        }.trap do |err|
+          log << :ae << err
+        end
+      end
+
+      assert_equal [:a1, :a2, :b1, :ae, :be], log, 'incorrect call order'
+
     end
   end
 end

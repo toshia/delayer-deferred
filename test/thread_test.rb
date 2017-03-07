@@ -114,4 +114,46 @@ describe(Thread) do
     assert_equal false, failure
   end
 
+  describe 'Race conditions' do
+    it "calls Thread#next for running thread" do
+      thread = succeed = result = false
+      uuid = SecureRandom.uuid
+      eval_all_events do
+        lock = true
+        th = Thread.new {
+          while lock; Thread.pass end
+          thread = true
+          uuid
+        }
+        th.next do |param|
+          succeed = true
+          result = param
+        end
+        lock = false
+      end
+      assert thread, "Thread did not executed."
+      assert succeed, "next block did not executed."
+      assert_equal uuid, result
+    end
+
+    it "calls Thread#next for stopped thread" do
+      thread = succeed = result = false
+      uuid = SecureRandom.uuid
+      eval_all_events do
+        th = Thread.new {
+          thread = true
+          uuid
+        }
+        while th.alive?; Thread.pass end
+        th.next do |param|
+          succeed = true
+          result = param
+        end
+      end
+      assert thread, "Thread did not executed."
+      assert succeed, "next block did not executed."
+      assert_equal uuid, result
+    end
+  end
+
 end

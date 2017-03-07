@@ -65,22 +65,30 @@ module Delayer::Deferred::Deferredable
   end
 
   def _call(stat = :ok, value = nil)
-    fiber = Fiber.new do
-      begin
-        fail_flag = true
-        failed = catch(:__deferredable_fail) do
-          Fiber.yield(Delayer::Deferred::ResultContainer.new(true, _execute(stat, value)))
-          fail_flag = false
+    delayer.new do
+      result, fiber = delayer.Deferred.fiber do
+        begin
+          result = catch(:__deferredable_fail) do
+            Delayer::Deferred::ResultContainer.new(true, _execute(stat, value))
+          end
+          if result.is_a?(Delayer::Deferred::ResultContainer)
+            result
+          else
+            Delayer::Deferred::ResultContainer.new(false, result)
+          end
+        rescue Exception => exception
+          Delayer::Deferred::ResultContainer.new(false, exception)
         end
-        if fail_flag
-          Fiber.yield(Delayer::Deferred::ResultContainer.new(false, failed))
-        end
-      rescue Exception => exception
-        Fiber.yield(Delayer::Deferred::ResultContainer.new(false, exception))
+      end
+      #_wait_fiber(fiber, nil)
+      if fiber
+        _fiber_stopped(result){|i| _wait_fiber(fiber, i) }
+      else
+        _fiber_completed(result)
       end
     end
-    _wait_fiber(fiber, nil)
   end
+
 
   def _execute(stat, value)
     callback[stat].call(value)
@@ -101,9 +109,9 @@ module Delayer::Deferred::Deferredable
     if result.ok?
       if result_value.is_a?(Delayer::Deferred::Deferredable)
         result_value.next{|v|
-          delayer.new{ _success_action(v) }
+          _success_action(v)
         }.trap{|v|
-          delayer.new{ _fail_action(v) }
+          _fail_action(v)
         }
       else
         _success_action(result_value)
@@ -116,9 +124,9 @@ module Delayer::Deferred::Deferredable
   # Deferredable#@+によって停止され、 _defer_ の完了次第処理を再開する必要がある時に呼ばれる
   def _fiber_stopped(defer, &cont)
     defer.next{|v|
-      delayer.new{ cont.(Delayer::Deferred::ResultContainer.new(true, v)) }
+      cont.(Delayer::Deferred::ResultContainer.new(true, v))
     }.trap{|v|
-      delayer.new{ cont.(Delayer::Deferred::ResultContainer.new(false, v)) }
+      cont.(Delayer::Deferred::ResultContainer.new(false, v))
     }
   end
 
@@ -137,7 +145,7 @@ module Delayer::Deferred::Deferredable
 
   def _success_action(obj)
     if defined?(@next)
-      delayer.new{ @next.call(obj) }
+      @next.call(obj)
     else
       register_next_call(:ok, obj)
     end
@@ -145,7 +153,7 @@ module Delayer::Deferred::Deferredable
 
   def _fail_action(err_obj)
     if defined?(@next)
-      delayer.new{ @next.fail(err_obj) }
+      @next.fail(err_obj)
     else
       register_next_call(:ng, err_obj)
     end

@@ -49,5 +49,21 @@ module Delayer::Deferred
         sprintf("#<%s: %p stat:%s value:%s>".freeze, self.class, object_id, @next_call_stat.inspect, @next_call_value.inspect)
       end
     end
+
+    def self.fiber(&block)
+      @_fiber ||= Fiber.new do |b|
+        loop do
+          b = Fiber.yield(b.())
+        end
+      end
+      result = @_fiber.resume(block)
+      if result.is_a?(Delayer::Deferred::ResultContainer)
+        result
+      else
+        _fiber = @_fiber
+        @_fiber = nil
+        return result, _fiber
+      end
+    end
   end
 end

@@ -114,4 +114,26 @@ describe(Thread) do
     assert_equal false, failure
   end
 
+  it "wait ended Thread for +thread" do
+    result = failure = false
+    delayer = Delayer.generate_class
+    uuid1, uuid2, uuid3 = SecureRandom.uuid, SecureRandom.uuid, SecureRandom.uuid
+    eval_all_events(delayer) do
+      delayer.Deferred.new.next{
+        [
+          +delayer.Deferred.Thread.new{ uuid1 },
+          +delayer.Deferred.Thread.new{ uuid2 },
+          +delayer.Deferred.Thread.new{ uuid3 }
+        ]
+      }.next{ |value|
+        result = value
+      }.trap{ |exception|
+        failure = exception }
+    end
+    assert_equal false, failure
+    assert_instance_of Array, result
+    assert_equal uuid1, result[0]
+    assert_equal uuid2, result[1]
+    assert_equal uuid3, result[2]
+  end
 end

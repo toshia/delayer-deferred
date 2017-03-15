@@ -213,6 +213,47 @@ describe(Delayer::Deferred) do
     end
   end
 
+  describe 'recursive delayer' do
+    it 'Deferred#next call in Deferred.next' do
+      delayer = Delayer.generate_class
+      buf = []
+      erra = errb = errc = nil
+      eval_all_events(delayer) do
+        delayer.Deferred.next{
+          buf << 'begin A'
+          delayer.run
+          buf << 'end A'
+        }.trap{|err|
+          erra = err
+        }
+        delayer.Deferred.next{
+          buf << 'begin B'
+          delayer.run
+          buf << 'end B'
+        }.trap{|err|
+          errb = err
+        }
+        delayer.Deferred.next{
+          buf << 'begin C'
+          delayer.run
+          buf << 'end C'
+        }.trap{|err|
+          errc = err
+        }
+
+      end
+      refute erra
+      refute errb
+      refute errc
+      assert_includes buf, 'begin A'
+      assert_includes buf, 'end A'
+      assert_includes buf, 'begin B'
+      assert_includes buf, 'end B'
+      assert_includes buf, 'begin C'
+      assert_includes buf, 'end C'
+    end
+  end
+
   describe "Deferredable#system" do
     it "command successed" do
       succeed = failure = false

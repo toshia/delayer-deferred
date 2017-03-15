@@ -51,18 +51,27 @@ module Delayer::Deferred
     end
 
     def self.fiber(&block)
-      @_fiber ||= Fiber.new do |b|
-        loop do
-          b = Fiber.yield(b.())
-        end
+      @_fiber ||= _gen_new_fiber
+      begin
+        result = @_fiber.resume(block)
+      rescue FiberError
+        @_fiber = _gen_new_fiber
+        result = @_fiber.resume(block)
       end
-      result = @_fiber.resume(block)
       if result.is_a?(Delayer::Deferred::ResultContainer)
         result
       else
         _fiber = @_fiber
         @_fiber = nil
         return result, _fiber
+      end
+    end
+
+    def self._gen_new_fiber
+      Fiber.new do |b|
+        loop do
+          b = Fiber.yield(b.())
+        end
       end
     end
   end

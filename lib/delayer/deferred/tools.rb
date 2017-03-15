@@ -50,7 +50,7 @@ module Delayer::Deferred
         if status && status.success?
           status
         else
-          raise ForeignCommandAborted.new("command aborted: #{args.join(' ')}", process: $?) end
+          raise ForeignCommandAborted.new("command aborted: #{args.join(' ')}", process: status) end
       }
     end
   end

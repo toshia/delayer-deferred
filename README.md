@@ -156,6 +156,24 @@ divided
 
 また、このメソッドはDeferredを返すので、ループが終わった後に処理をしたり、エラーを受け取ったりできます。
 
+### Async/Await
+
+Deferred#next や Deferred#trap のブロック内では、Deferredable#+@ が使えます。非同期な処理を同期処理のように書くことができます。
+
++@を呼び出すと、呼び出し元のDeferredの処理が一時停止し、+@のレシーバになっているDeferredableが完了した後に処理が再開されます。また、戻り値はレシーバのDeferredableのそれになります。
+
+```
+request = Thread.new{ open("http://mikutter.hachune.net/download/unstable.json") }
+Deferred.next{
+  puts "最新の不安定版mikutterのバージョンは"
+  response = JSON.parse(+request)
+  puts response.first["version_string"]
+  puts "です"
+}
+```
+
+`+request` が呼ばれた時、リクエスト完了まで処理は一時止まりますが、他にDelayerキューにジョブが溜まっていたら、そちらが実行されます。この機能を使わない場合は、HTTPレスポンスを受け取るまでDelayerの他のジョブは停止してしまいます。
+
 ## Contributing
 
 1. Fork it ( https://github.com/toshia/delayer-deferred/fork )

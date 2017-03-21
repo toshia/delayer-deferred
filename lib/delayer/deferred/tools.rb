@@ -27,16 +27,15 @@ module Delayer::Deferred
     # Deferred
     def when(*args)
       return self.next{[]} if args.empty?
-      defer, *follow = args
-      raise TypeError, "Argument of Deferred.when must be Delayer::Deferred::Deferredable" unless defer.is_a? Delayer::Deferred::Deferredable
-      if follow.empty?
-        defer.next{|res| [res] }
-      else
-        remain = self.when(*follow)
-        defer.next do |res|
-          remain.next do |follow_res|
-            follow_res.unshift(res) end end end end
-
+      args = args.flatten
+      unless args.all?{|d| d.is_a?(Delayer::Deferred::Deferredable) }
+        raise TypeError, "Argument of Deferred.when must be Delayer::Deferred::Deferredable"
+      end
+      defer, *follow = *args
+      defer.next{|res|
+        [res, *follow.map{|d| +d }]
+      }
+    end
     # Kernel#systemを呼び出して、コマンドが成功たら成功するDeferredを返す。
     # 失敗した場合、trap{}ブロックには $? の値(Process::Status)か、例外が発生した場合それが渡される
     # ==== Args

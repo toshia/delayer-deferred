@@ -131,6 +131,7 @@ module Delayer::Deferred::Deferredable
   end
 
   def _post(kind, &proc)
+    raise Delayer::Deferred::MultipleAssignmentError, "It was already assigned next or trap block." if defined?(@next)
     @next = delayer.Deferred.new(self)
     @next.callback[kind] = proc
     if defined?(@next_call_stat) and defined?(@next_call_value)

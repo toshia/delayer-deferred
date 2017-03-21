@@ -58,9 +58,10 @@ module Delayer::Deferred
         @_fiber = _gen_new_fiber
         result = @_fiber.resume(block)
       end
-      if result.is_a?(Delayer::Deferred::ResultContainer)
+      case result
+      when Delayer::Deferred::ResultContainer
         result
-      else
+      when Delayer::Deferred::Deferredable, :pass
         _fiber = @_fiber
         @_fiber = nil
         return result, _fiber

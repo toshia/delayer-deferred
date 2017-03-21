@@ -82,7 +82,11 @@ module Delayer::Deferred::Deferredable
       end
       #_wait_fiber(fiber, nil)
       if fiber
-        _fiber_stopped(result){|i| _wait_fiber(fiber, i) }
+        if result.is_a?(Delayer::Deferred::Deferredable)
+          _fiber_stopped(result){|i| _wait_fiber(fiber, i) }
+        else
+          _fiber_passed{|i| _wait_fiber(fiber, i) }
+        end
       else
         _fiber_completed(result)
       end
@@ -96,8 +100,11 @@ module Delayer::Deferred::Deferredable
 
   def _wait_fiber(fiber, resume_value)
     result = fiber.resume(resume_value)
-    if result.is_a?(Delayer::Deferred::ResultContainer)
+    case result
+    when Delayer::Deferred::ResultContainer
       _fiber_completed(result)
+    when :pass
+      _fiber_passed{|i| _wait_fiber(fiber, i) }
     else
       _fiber_stopped(result){|i| _wait_fiber(fiber, i) }
     end
@@ -127,6 +134,13 @@ module Delayer::Deferred::Deferredable
       cont.(Delayer::Deferred::ResultContainer.new(true, v))
     }.trap{|v|
       cont.(Delayer::Deferred::ResultContainer.new(false, v))
+    }
+  end
+
+  # Deferred.passによって停止され、後ほど処理を再開する必要がある時に呼ばれる
+  def _fiber_passed(&cont)
+    delayer.new {
+      cont.(Delayer::Deferred::ResultContainer.new(true, nil))
     }
   end
 

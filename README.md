@@ -156,6 +156,16 @@ divided
 
 また、このメソッドはDeferredを返すので、ループが終わった後に処理をしたり、エラーを受け取ったりできます。
 
+### Pass to another Delayer
+
+Deferredのコンテキストの中で `Deferred.pass` を呼ぶと、そこで一旦処理が中断し、キューの最後に並び直します。
+他のDelayerが処理され終わると `Deferred.pass` から処理が戻ってきて、再度そこから実行が再開されます。
+
+`Deferred.pass` は常に処理を中断するわけではなく、Delayerの時間制限を過ぎている場合にのみ処理をブレークします。
+用途としては `Enumerator#deach` が使えないようなループの中で毎回呼び出して、長時間処理をブロックしないようにするといった用途が考えられます。
+
+`Enumerator#deach` は `Deferred.pass` を用いて作られています。
+
 ## Contributing
 
 1. Fork it ( https://github.com/toshia/delayer-deferred/fork )

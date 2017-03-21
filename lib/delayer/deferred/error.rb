@@ -10,4 +10,6 @@ module Delayer::Deferred
       @process = process
     end
   end
+
+  MultipleAssignmentError = Class.new(Error)
 end

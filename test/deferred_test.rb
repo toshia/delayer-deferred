@@ -9,6 +9,34 @@ describe(Delayer::Deferred) do
     Delayer.default = Delayer.generate_class
   end
 
+  describe "generate Promise" do
+    before do
+      @promise = Delayer::Deferred::Deferred.new
+    end
+
+    it 'was generated' do
+      assert_kind_of Delayer::Deferred::Promise, @promise
+    end
+
+    it "doesn't have child" do
+      refute @promise.has_child?
+    end
+  end
+
+  describe "generate Promise with block" do
+    before do
+      @promise = Delayer::Deferred::Deferred.new{ ; }
+    end
+
+    it 'was generated' do
+      assert_kind_of Delayer::Deferred::Next, @promise
+    end
+
+    it "doesn't have child" do
+      refute @promise.has_child?
+    end
+  end
+
   it "defer with Deferred#next" do
     succeed = failure = false
     eval_all_events do

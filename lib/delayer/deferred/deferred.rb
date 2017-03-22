@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 require "delayer/deferred/promise"
-require "delayer/deferred/next"
-require "delayer/deferred/trap"
+require "delayer/deferred/chain"
 require "delayer/deferred/deferredable"
 require "delayer/deferred/tools"
 require "delayer/deferred/worker"

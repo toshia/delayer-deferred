@@ -2,6 +2,25 @@
 require "delayer/deferred/response"
 
 module Delayer::Deferred
+=begin rdoc
+Deferredを実行するためのWorker。Deferredチェインを実行するFiberを
+管理する。
+
+== pushに渡すオブジェクトについて
+Worker#push に渡す引数は、activateメソッドを実装している必要がある。
+
+=== activate(response)
+==== Args
+response :: Delayer::Deferred::Response::Base Deferredに渡す値
+==== Returns
+[Delayer::Deferred::Response::Base]
+  これを返すと、値の自動変換が行われないため、意図的に失敗させたり、Deferredを次のブロックに伝搬させることができる。
+[Delayer::Deferred::Chainable]
+  戻り値のDeferredが終わるまでWorkerの処理を停止する。
+  再開された時、結果は戻り値のDeferredの結果に置き換えられる。
+[else]
+  _Delayer::Deferred::Response::Ok.new_ の引数に渡され、その結果が利用される
+=end
   class Worker
     def initialize(delayer:, initial:)
       @delayer, @initial = delayer, initial

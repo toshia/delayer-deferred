@@ -31,10 +31,7 @@ module Delayer::Deferred
     end
 
     def self.new(stop=false, &block)
-      result = promise = self.Promise.new
-      result = self.Promise.new.next(&block) if block_given?
-      promise.call(true) unless stop
-      result
+      self.Promise.new(stop=false, &block)
     end
   end
 end

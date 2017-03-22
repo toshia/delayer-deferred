@@ -33,6 +33,7 @@ module Delayer::Deferred::Deferredable
   # 直接戻り値を得ることが出来る。
   # _self_ が失敗した場合は、呼び出し側のDeferredの直近の _trap_ ブロックが呼ばれる。
   def +@
+    raise Delayer::Deferred::MultipleAssignmentError, "It was already assigned next or trap block." if assigned?
     interrupt = Fiber.yield(self)
     if interrupt.ok?
       interrupt.value
@@ -57,6 +58,10 @@ module Delayer::Deferred::Deferredable
   # Deferred
   def wait(second)
     self.next{ Thread.new{ sleep(second) } } end
+
+  def assigned?
+    defined?(@next)
+  end
 
   private
 
@@ -145,7 +150,7 @@ module Delayer::Deferred::Deferredable
   end
 
   def _post(kind, &proc)
-    raise Delayer::Deferred::MultipleAssignmentError, "It was already assigned next or trap block." if defined?(@next)
+    raise Delayer::Deferred::MultipleAssignmentError, "It was already assigned next or trap block." if assigned?
     @next = delayer.Deferred.new(self)
     @next.callback[kind] = proc
     if defined?(@next_call_stat) and defined?(@next_call_value)

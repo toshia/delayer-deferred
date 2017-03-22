@@ -15,7 +15,6 @@ module Delayer::Deferred
     # 直接戻り値を得ることが出来る。
     # _self_ が失敗した場合は、呼び出し側のDeferredの直近の _trap_ ブロックが呼ばれる。
     def +@
-      raise Delayer::Deferred::MultipleAssignmentError, "It was already assigned next or trap block." if assigned?
       interrupt = Fiber.yield(self)
       if interrupt.ok?
         interrupt.value

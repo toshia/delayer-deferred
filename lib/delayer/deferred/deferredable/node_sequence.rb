@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+require 'delayer/deferred/error'
 
 module Delayer::Deferred::Deferredable
   module NodeSequence
@@ -8,18 +9,23 @@ module Delayer::Deferred::Deferredable
       def initialize(name)
         @name = name.to_sym
         @map = {}
+        @exceptions = Hash.new(Delayer::Deferred::SequenceError)
       end
 
-      def add(seq, seq_name = seq.name)
-        @map[seq_name] = seq
+      def add(seq, flow = seq.name)
+        @map[flow] = seq
         self
       end
 
-      def pull(seq)
-        if @map.has_key?(seq.to_sym)
-          @map[seq.to_sym]
+      def exception(exc, flow)
+        @exceptions[flow] = exc
+      end
+
+      def pull(flow)
+        if @map.has_key?(flow.to_sym)
+          @map[flow.to_sym]
         else
-          raise Delayer::Deferred::SequenceError, "Invalid sequence flow `#{name}' to `#{seq}'."
+          raise @exceptions[flow.to_sym], "Invalid sequence flow `#{name}' to `#{flow}'."
         end
       end
 
@@ -44,17 +50,22 @@ module Delayer::Deferred::Deferredable
       .add(CONNECTED, :get_child)
       .add(RESERVED, :reserve).freeze
     CONNECTED
-      .add(RESERVED_C, :reserve).freeze
+      .add(RESERVED_C, :reserve)
+      .exception(Delayer::Deferred::MultipleAssignmentError, :get_child).freeze
     RESERVED
       .add(RUN, :activate)
       .add(RESERVED_C, :get_child).freeze
     RESERVED_C
-      .add(RUN_C, :activate).freeze
+      .add(RUN_C, :activate)
+      .exception(Delayer::Deferred::MultipleAssignmentError, :get_child)
+.freeze
     RUN
       .add(RUN_C, :get_child)
       .add(STOP, :complete).freeze
     RUN_C
-      .add(CALL_CHILD, :complete).freeze
+      .add(CALL_CHILD, :complete)
+      .exception(Delayer::Deferred::MultipleAssignmentError, :get_child)
+.freeze
     CALL_CHILD
       .add(ROTTEN, :called)
     STOP

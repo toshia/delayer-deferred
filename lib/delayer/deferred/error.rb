@@ -11,6 +11,6 @@ module Delayer::Deferred
     end
   end
 
-  MultipleAssignmentError = Class.new(Error)
   SequenceError = Class.new(Error)
+  MultipleAssignmentError = Class.new(SequenceError)
 end

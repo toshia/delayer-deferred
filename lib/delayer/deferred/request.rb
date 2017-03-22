@@ -38,8 +38,7 @@ Fiberが次のWorkerを要求している時に返す値。
       if deferred.has_child?
         worker.push(deferred.child)
       else
-        puts "NextWorker: #{deferred.inspect} dont have child"
-        # TODO: childが入ったら続行
+        deferred.add_child_observer(worker)
       end
     end
   end

@@ -28,6 +28,7 @@ response :: Delayer::Deferred::Response::Base Deferredに渡す値
     end
 
     def push(deferred)
+      deferred.reserve_activate
       @delayer.new do
         fiber.resume(deferred).accept_request(worker: self,
                                               deferred: deferred)
@@ -41,6 +42,8 @@ response :: Delayer::Deferred::Response::Base Deferredに渡す値
         loop do
           response = wait_and_activate(response)
           case response.value
+          when Delayer::Deferred::Error
+            raise response.value
           when Deferredable::Chainable
             Fiber.yield(Request::Graft.new(response.value))
             break
@@ -53,7 +56,8 @@ response :: Delayer::Deferred::Response::Base Deferredに渡す値
       response = catch(:success) do
         failed = catch(:__deferredable_fail) do
           begin
-            throw :success, Fiber.yield(Request::NEXT_WORKER).activate(argument)
+            res = Fiber.yield(Request::NEXT_WORKER).activate(argument)
+            throw :success, res
           rescue Exception => err
             throw :__deferredable_fail, err
           end

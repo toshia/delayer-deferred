@@ -30,30 +30,63 @@ module Delayer::Deferred::Deferredable
 
     FRESH     = Sequence.new(:fresh)
     CONNECTED = Sequence.new(:connected)      # 子がいる、未実行
+    RESERVED  = Sequence.new(:reserved)       # 実行キュー待ち
+    RESERVED_C= Sequence.new(:reserved)       # 実行キュー待ち(子がいる)
     RUN       = Sequence.new(:run)            # 実行中
-    RUN_WITH  = Sequence.new(:run_with_child) # 実行中(子がいる)
-    WAIT      = Sequence.new(:wait)           # 完了、子なし
+    RUN_C     = Sequence.new(:run)            # 実行中(子がいる)
+    CALL_CHILD= Sequence.new(:call_child)     # 完了、子がいる
+    STOP      = Sequence.new(:stop)           # 完了、子なし
+    WAIT      = Sequence.new(:wait)           # 完了、オブザーバ登録済み
+    BURST_OUT = Sequence.new(:burst_out)      # 完了、オブザーバ登録済み、子追加済み
     ROTTEN    = Sequence.new(:rotten).freeze  # 終了
 
     FRESH
       .add(CONNECTED, :get_child)
-      .add(RUN, :activate).freeze
+      .add(RESERVED, :reserve).freeze
     CONNECTED
-      .add(RUN_WITH, :activate).freeze
+      .add(RESERVED_C, :reserve).freeze
+    RESERVED
+      .add(RUN, :activate)
+      .add(RESERVED_C, :get_child).freeze
+    RESERVED_C
+      .add(RUN_C, :activate).freeze
     RUN
-      .add(RUN_WITH, :get_child)
-      .add(WAIT, :complete).freeze
-    RUN_WITH
-      .add(ROTTEN, :complete).freeze
+      .add(RUN_C, :get_child)
+      .add(STOP, :complete).freeze
+    RUN_C
+      .add(CALL_CHILD, :complete).freeze
+    CALL_CHILD
+      .add(ROTTEN, :called)
+    STOP
+      .add(WAIT, :gaze).freeze
     WAIT
-      .add(ROTTEN, :get_child).freeze
+      .add(BURST_OUT, :get_child).freeze
+    BURST_OUT
+      .add(ROTTEN, :called).freeze
 
     def sequence
       @sequence ||= FRESH
     end
 
-    def change_sequence(seq_name)
-      @sequence = sequence.pull(seq_name)
+    def change_sequence(flow, &block)
+      old_seq = sequence
+      new_seq = @sequence = sequence.pull(flow)
+      (@seq_logger ||= [old_seq]) << new_seq
+      if block
+        result = block.()
+        on_sequence_changed(old_seq, flow, new_seq)
+        result
+      else
+        on_sequence_changed(old_seq, flow, new_seq)
+        nil
+      end
+    end
+
+    def on_sequence_changed(old_seq, flow, new_seq)
+    end
+
+    def activated?
+      ![FRESH, CONNECTED, RUN, RUN_C].include?(sequence)
     end
 
     def spoiled?

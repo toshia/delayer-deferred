@@ -14,9 +14,8 @@ module Delayer::Deferred
 
     def activate(response)
       change_sequence(:activate)
-      response
-    ensure
       change_sequence(:complete)
+      response
     end
 
     def inspect

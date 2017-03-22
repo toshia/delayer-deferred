@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+require "delayer/deferred/request"
 require "delayer/deferred/response"
 
 module Delayer::Deferred
@@ -28,14 +29,8 @@ response :: Delayer::Deferred::Response::Base Deferredに渡す値
 
     def push(deferred)
       @delayer.new do
-        puts "fiber.resume(#{deferred.inspect})"
-        fiber.resume(deferred)
-        if deferred.has_child?
-          self.push(deferred.child)
-        else
-          puts "#{deferred.inspect} dont have child"
-          # TODO: childが入ったら続行
-        end
+        fiber.resume(deferred).accept_request(worker: self,
+                                              deferred: deferred)
       end
     end
 
@@ -44,21 +39,32 @@ response :: Delayer::Deferred::Response::Base Deferredに渡す値
     def fiber
       @fiber ||= Fiber.new{|response|
         loop do
-          response = catch(:success) do
-            failed = catch(:__deferredable_fail) do
-              begin
-                throw :success, Fiber.yield(nil).activate(response)
-              rescue Exception => err
-                throw :__deferredable_fail, err
-              end
-            end
-            Response::Ng.new(failed)
-          end
-          unless response.is_a?(Response::Base)
-            response = Response::Ok.new(response)
+          response = wait_and_activate(response)
+          case response.value
+          when Deferredable::Chainable
+            Fiber.yield(Request::Graft.new(response.value))
+            break
           end
         end
       }.tap{|f| f.resume(@initial); @initial = nil }
+    end
+
+    def wait_and_activate(argument)
+      response = catch(:success) do
+        failed = catch(:__deferredable_fail) do
+          begin
+            throw :success, Fiber.yield(Request::NEXT_WORKER).activate(argument)
+          rescue Exception => err
+            throw :__deferredable_fail, err
+          end
+        end
+        Response::Ng.new(failed)
+      end
+      if response.is_a?(Response::Base)
+        response
+      else
+        Response::Ok.new(response)
+      end
     end
   end
 end

@@ -11,7 +11,7 @@ module Delayer::Deferred::Deferredable
     # 新しいDeferredのインスタンスを返す
     def next(&proc)
       change_sequence(:get_child)
-      @child = Delayer::Deferred::Next.new(&proc)
+      add_child(Delayer::Deferred::Next.new(&proc))
     end
     alias deferred next
 
@@ -19,12 +19,16 @@ module Delayer::Deferred::Deferredable
     # 新しいDeferredのインスタンスを返す
     def trap(&proc)
       change_sequence(:get_child)
-      @child = Delayer::Deferred::Trap.new(&proc)
+      add_child(Delayer::Deferred::Trap.new(&proc))
     end
     alias error trap
 
     def has_child?
       child ? true : false
+    end
+
+    def add_child(chainable)
+      @child = chainable
     end
   end
 end

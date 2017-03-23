@@ -10,8 +10,6 @@ require "delayer/deferred/version"
 
 module Delayer
   module Deferred
-    extend Delayer::Deferred::Tools
-
     class << self
       #真ならデバッグ情報を集める
       attr_accessor :debug
@@ -20,6 +18,10 @@ module Delayer
         promise = Delayer::Deferred::Promise.new
         promise.call(value)
         promise.next(&proc)
+      end
+
+      def method_missing(*rest, &block)
+        Delayer::Deferred::Deferred.__send__(*rest, &block)
       end
     end
   end

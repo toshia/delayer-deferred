@@ -1,42 +1,51 @@
 # -*- coding: utf-8 -*-
 require "delayer"
-require "delayer/deferred/deferredable"
+require "delayer/deferred/deferredable/awaitable"
 
 class Thread
-  include ::Delayer::Deferred::Deferredable
+  include ::Delayer::Deferred::Deferredable::Awaitable
 
   def self.delayer
     Delayer
   end
 
-  def next(*rest, &block)
-    __gen_promise.next(*rest, &block)
+  # このDeferredが成功した場合の処理を追加する。
+  # 新しいDeferredのインスタンスを返す
+  # TODO: procが空のとき例外を発生させる
+  def next(&proc)
+    add_child(Delayer::Deferred::Next.new(&proc))
   end
+  alias deferred next
 
-  def trap(*rest, &block)
-    __gen_promise.trap(*rest, &block)
+  # このDeferredが失敗した場合の処理を追加する。
+  # 新しいDeferredのインスタンスを返す
+  # TODO: procが空のとき例外を発生させる
+  def trap(&proc)
+    add_child(Delayer::Deferred::Trap.new(&proc))
+  end
+  alias error trap
+
+  def add_child(chainable)
+    __gen_promise.add_child(chainable)
   end
 
   private
 
   def __gen_promise
-    promise = delayer.Deferred.new(true)
+    promise = self.class.delayer.Promise.new(true)
     Thread.new(self) do |tt|
       __promise_callback(tt, promise)
     end
+    p promise
     promise
   end
 
   def __promise_callback(tt, promise)
-    failed = catch(:__deferredable_fail) do
-      begin
-        promise.call(tt.value)
-      rescue Exception => err
-        promise.fail(err)
-      end
-      return
+    begin
+      promise.call(tt.value)
+    rescue Exception => err
+      promise.fail(err)
     end
-    promise.fail(failed)
   end
 
 end

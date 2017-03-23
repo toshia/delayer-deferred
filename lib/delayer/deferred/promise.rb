@@ -4,8 +4,6 @@ require "delayer/deferred/deferredable/trigger"
 
 module Delayer::Deferred
   class Promise
-    extend Delayer::Deferred::Tools
-
     include Deferredable::Trigger
 
     def self.new(stop=false, &block)
@@ -15,8 +13,10 @@ module Delayer::Deferred
       result
     end
 
-    def self.delayer
-      ::Delayer
+    class << self
+      def method_missing(*rest, &block)
+        Delayer::Deferred::Deferred.__send__(*rest, &block)
+      end
     end
 
     def activate(response)

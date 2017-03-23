@@ -1,8 +1,11 @@
 # -*- coding: utf-8 -*-
+require "delayer/deferred/tools"
 require "delayer/deferred/deferredable/trigger"
 
 module Delayer::Deferred
   class Promise
+    extend Delayer::Deferred::Tools
+
     include Deferredable::Trigger
 
     def self.new(stop=false, &block)
@@ -10,6 +13,10 @@ module Delayer::Deferred
       result = super().next(&block) if block_given?
       promise.call(true) unless stop
       result
+    end
+
+    def self.delayer
+      ::Delayer
     end
 
     def activate(response)

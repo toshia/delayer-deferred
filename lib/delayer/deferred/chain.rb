@@ -24,10 +24,11 @@ module Delayer::Deferred
     end
 
     def inspect
-      "#<#{self.class} seq:#{sequence.name}>"
+      "#<#{self.class} seq:#{sequence.name} child:#{has_child?}>"
     end
   end
 end
 
 require "delayer/deferred/chain/next"
 require "delayer/deferred/chain/trap"
+require "delayer/deferred/chain/await"

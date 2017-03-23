@@ -1,14 +1,17 @@
 # -*- coding: utf-8 -*-
 require "delayer/deferred/deferredable/node_sequence"
+require "delayer/deferred/deferredable/awaitable"
 
 module Delayer::Deferred::Deferredable
   module Chainable
     include NodeSequence
+    include Awaitable
 
     attr_reader :child
 
     # このDeferredが成功した場合の処理を追加する。
     # 新しいDeferredのインスタンスを返す
+    # TODO: procが空のとき例外を発生させる
     def next(&proc)
       add_child(Delayer::Deferred::Next.new(&proc))
     end
@@ -16,6 +19,7 @@ module Delayer::Deferred::Deferredable
 
     # このDeferredが失敗した場合の処理を追加する。
     # 新しいDeferredのインスタンスを返す
+    # TODO: procが空のとき例外を発生させる
     def trap(&proc)
       add_child(Delayer::Deferred::Trap.new(&proc))
     end

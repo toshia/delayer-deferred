@@ -39,5 +39,17 @@ _value_ には、移譲先のDeferredが入っている。
     end
   end
 
+=begin rdoc
+Chainable#+@ が呼ばれた時に、一旦そこで処理を止めるためのリクエスト。
+_value_ には、実行完了を待つDeferredが入っている。
+=end
+  class Await < Base
+    alias_method :foreign_deferred, :value
+    def accept_request(worker:, deferred:)
+      deferred.enter_await
+      foreign_deferred.add_child(Delayer::Deferred::Await.new(worker: worker, deferred: deferred))
+    end
+  end
+
   NEXT_WORKER = NextWorker.new(nil)
 end

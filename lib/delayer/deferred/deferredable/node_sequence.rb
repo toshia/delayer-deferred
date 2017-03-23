@@ -40,6 +40,8 @@ module Delayer::Deferred::Deferredable
     RESERVED_C= Sequence.new(:reserved)       # 実行キュー待ち(子がいる)
     RUN       = Sequence.new(:run)            # 実行中
     RUN_C     = Sequence.new(:run)            # 実行中(子がいる)
+    AWAIT     = Sequence.new(:await)          # Await中
+    AWAIT_C   = Sequence.new(:await)          # Await中(子がいる)
     CALL_CHILD= Sequence.new(:call_child)     # 完了、子がいる
     STOP      = Sequence.new(:stop)           # 完了、子なし
     WAIT      = Sequence.new(:wait)           # 完了、オブザーバ登録済み
@@ -57,15 +59,21 @@ module Delayer::Deferred::Deferredable
       .add(RESERVED_C, :get_child).freeze
     RESERVED_C
       .add(RUN_C, :activate)
-      .exception(Delayer::Deferred::MultipleAssignmentError, :get_child)
-.freeze
+      .exception(Delayer::Deferred::MultipleAssignmentError, :get_child).freeze
     RUN
       .add(RUN_C, :get_child)
+      .add(AWAIT, :await)
       .add(STOP, :complete).freeze
     RUN_C
+      .add(AWAIT_C, :await)
       .add(CALL_CHILD, :complete)
-      .exception(Delayer::Deferred::MultipleAssignmentError, :get_child)
-.freeze
+      .exception(Delayer::Deferred::MultipleAssignmentError, :get_child).freeze
+    AWAIT
+      .add(RUN, :resume)
+      .add(AWAIT_C, :get_child).freeze
+    AWAIT_C
+      .add(RUN_C, :resume)
+      .exception(Delayer::Deferred::MultipleAssignmentError, :get_child).freeze
     CALL_CHILD
       .add(ROTTEN, :called)
     STOP

@@ -33,6 +33,20 @@ response :: Delayer::Deferred::Response::Base Deferredに渡す値
         fiber.resume(deferred).accept_request(worker: self,
                                               deferred: deferred)
       end
+      nil
+    end
+
+    # Awaitから復帰した時に呼ばれる。
+    # ==== Args
+    # [response] Awaitの結果(Delayer::Deferred::Response::Base)
+    # [deferred] 現在実行中のDeferred
+    def give_response(response, deferred)
+      @delayer.new do
+        deferred.exit_await
+        fiber.resume(response).accept_request(worker: self,
+                                              deferred: deferred)
+      end
+      nil
     end
 
     private

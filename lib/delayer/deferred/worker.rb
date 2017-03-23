@@ -30,6 +30,7 @@ response :: Delayer::Deferred::Response::Base Deferredに渡す値
     def push(deferred)
       deferred.reserve_activate
       @delayer.new do
+        next if deferred.spoiled?
         fiber.resume(deferred).accept_request(worker: self,
                                               deferred: deferred)
       end
@@ -42,6 +43,7 @@ response :: Delayer::Deferred::Response::Base Deferredに渡す値
     # [deferred] 現在実行中のDeferred
     def give_response(response, deferred)
       @delayer.new do
+        next if deferred.spoiled?
         deferred.exit_await
         fiber.resume(response).accept_request(worker: self,
                                               deferred: deferred)

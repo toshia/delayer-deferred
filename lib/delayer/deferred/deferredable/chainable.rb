@@ -25,6 +25,11 @@ module Delayer::Deferred::Deferredable
     end
     alias error trap
 
+    # この一連のDeferredをこれ以上実行しない
+    def cancel
+      change_sequence(:genocide) unless spoiled?
+    end
+
     def has_child?
       child ? true : false
     end
@@ -40,6 +45,7 @@ module Delayer::Deferred::Deferredable
     #   既に子が存在している場合
     def add_child(chainable)
       change_sequence(:get_child) do
+        chainable.parent = self
         @child = chainable
       end
     end
@@ -62,6 +68,14 @@ module Delayer::Deferred::Deferredable
       change_sequence(:reserve)
     end
 
+    protected
+
+    # cancelとかデバッグ用のコールグラフを得るために親を登録しておく。
+    # add_childから呼ばれる。
+    def parent=(chainable)
+      @parent = chainable
+    end
+
     private
 
     def call_child_observer
@@ -75,6 +89,8 @@ module Delayer::Deferred::Deferredable
       case new_seq
       when NodeSequence::BURST_OUT
         call_child_observer
+      when NodeSequence::GENOCIDE
+        @parent.cancel if @parent
       end
     end
   end

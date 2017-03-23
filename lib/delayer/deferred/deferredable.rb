@@ -10,12 +10,6 @@ module Delayer::Deferred
     include Chainable
     include NodeSequence
 
-    # この一連のDeferredをこれ以上実行しない
-    # TODO:
-    def cancel
-      @callback = Callback.new(CallbackDefaultOK,
-                               CallbackDefaultNG).freeze end
-
     # second 秒待って次を実行する
     # ==== Args
     # [second] 待つ秒数(second)

@@ -19,6 +19,7 @@ module Delayer::Deferred::Deferredable
 
       def exception(exc, flow)
         @exceptions[flow] = exc
+        self
       end
 
       def pull(flow)
@@ -47,41 +48,54 @@ module Delayer::Deferred::Deferredable
     WAIT      = Sequence.new(:wait)           # 完了、オブザーバ登録済み
     BURST_OUT = Sequence.new(:burst_out)      # 完了、オブザーバ登録済み、子追加済み
     ROTTEN    = Sequence.new(:rotten).freeze  # 終了
+    GENOCIDE  = Sequence.new(:genocide).freeze# この地ではかつて大量虐殺があったという。
 
     FRESH
       .add(CONNECTED, :get_child)
-      .add(RESERVED, :reserve).freeze
+      .add(RESERVED, :reserve)
+      .add(GENOCIDE).freeze
     CONNECTED
       .add(RESERVED_C, :reserve)
-      .exception(Delayer::Deferred::MultipleAssignmentError, :get_child).freeze
+      .exception(Delayer::Deferred::MultipleAssignmentError, :get_child)
+      .add(GENOCIDE).freeze
     RESERVED
       .add(RUN, :activate)
-      .add(RESERVED_C, :get_child).freeze
+      .add(RESERVED_C, :get_child)
+      .add(GENOCIDE).freeze
     RESERVED_C
       .add(RUN_C, :activate)
-      .exception(Delayer::Deferred::MultipleAssignmentError, :get_child).freeze
+      .exception(Delayer::Deferred::MultipleAssignmentError, :get_child)
+      .add(GENOCIDE).freeze
     RUN
       .add(RUN_C, :get_child)
       .add(AWAIT, :await)
-      .add(STOP, :complete).freeze
+      .add(STOP, :complete)
+      .add(GENOCIDE).freeze
     RUN_C
       .add(AWAIT_C, :await)
       .add(CALL_CHILD, :complete)
-      .exception(Delayer::Deferred::MultipleAssignmentError, :get_child).freeze
+      .exception(Delayer::Deferred::MultipleAssignmentError, :get_child)
+      .add(GENOCIDE).freeze
     AWAIT
       .add(RUN, :resume)
-      .add(AWAIT_C, :get_child).freeze
+      .add(AWAIT_C, :get_child)
+      .add(GENOCIDE).freeze
     AWAIT_C
       .add(RUN_C, :resume)
-      .exception(Delayer::Deferred::MultipleAssignmentError, :get_child).freeze
+      .exception(Delayer::Deferred::MultipleAssignmentError, :get_child)
+      .add(GENOCIDE).freeze
     CALL_CHILD
       .add(ROTTEN, :called)
+      .add(GENOCIDE).freeze
     STOP
-      .add(WAIT, :gaze).freeze
+      .add(WAIT, :gaze)
+      .add(GENOCIDE).freeze
     WAIT
-      .add(BURST_OUT, :get_child).freeze
+      .add(BURST_OUT, :get_child)
+      .add(GENOCIDE).freeze
     BURST_OUT
-      .add(ROTTEN, :called).freeze
+      .add(ROTTEN, :called)
+      .add(GENOCIDE).freeze
 
     def sequence
       @sequence ||= FRESH
@@ -109,7 +123,7 @@ module Delayer::Deferred::Deferredable
     end
 
     def spoiled?
-      sequence == ROTTEN
+      sequence == ROTTEN || sequence == GENOCIDE
     end
   end
 end

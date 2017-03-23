@@ -34,8 +34,8 @@ module Delayer::Deferred
     def when(*args)
       return self.next{[]} if args.empty?
       args = args.flatten
-      unless args.all?{|d| d.is_a?(Delayer::Deferred::Deferredable) }
-        raise TypeError, "Argument of Deferred.when must be Delayer::Deferred::Deferredable"
+      unless args.all?{|d| d.is_a?(Deferredable::Chainable) }
+        raise TypeError, "Argument of Deferred.when must be #{Deferredable::Chainable}"
       end
       defer, *follow = *args
       defer.next{|res|

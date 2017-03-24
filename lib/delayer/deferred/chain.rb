@@ -26,6 +26,10 @@ module Delayer::Deferred
     def inspect
       "#<#{self.class} seq:#{sequence.name} child:#{has_child?}>"
     end
+
+    def node_name
+      @proc.source_location.join(':'.freeze)
+    end
   end
 end
 

@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+require "delayer/deferred/deferredable"
 
 module Delayer::Deferred::Deferredable
   module Awaitable

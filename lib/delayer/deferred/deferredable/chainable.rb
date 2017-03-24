@@ -1,11 +1,14 @@
 # -*- coding: utf-8 -*-
-require "delayer/deferred/deferredable/node_sequence"
+require "delayer/deferred/deferredable"
 require "delayer/deferred/deferredable/awaitable"
+require "delayer/deferred/deferredable/graph"
+require "delayer/deferred/deferredable/node_sequence"
 
 module Delayer::Deferred::Deferredable
   module Chainable
-    include NodeSequence
     include Awaitable
+    include Graph
+    include NodeSequence
 
     attr_reader :child
 
@@ -70,6 +73,16 @@ module Delayer::Deferred::Deferredable
 
     protected
 
+    # 親を再帰的に辿り、一番最初のノードを返す。
+    # 親が複数見つかった場合は、それらを返す。
+    def ancestor
+      if @parent
+        @parent.ancestor
+      else
+        self
+      end
+    end
+
     # cancelとかデバッグ用のコールグラフを得るために親を登録しておく。
     # add_childから呼ばれる。
     def parent=(chainable)
@@ -93,5 +106,11 @@ module Delayer::Deferred::Deferredable
         @parent.cancel if @parent
       end
     end
+
+    # ノードの名前。サブクラスでオーバライドし、ノードが定義されたファイルの名前や行数などを入れておく。
+    def node_name
+      self.class.to_s
+    end
+
   end
 end

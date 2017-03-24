@@ -49,7 +49,22 @@ module Delayer::Deferred
     end
 
     def inspect
-      "#<#{self.class.delayer}.Promise seq:#{sequence.name}>"
+      "#<#{self.class} seq:#{sequence.name}>"
     end
+
+    def ancestor
+      self
+    end
+
+    def parent=(chainable)
+      fail Error, "#{self.class} can't has parent."
+    end
+
+    private
+
+    def graph_shape
+      'egg'.freeze
+    end
+
   end
 end

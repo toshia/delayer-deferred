@@ -46,6 +46,7 @@ describe(Thread) do
     thread = succeed = failure = result = false
     uuid = SecureRandom.uuid
     delayer = Delayer.generate_class
+    assert_equal delayer, delayer.Deferred.Thread.delayer
     eval_all_events(delayer) do
       delayer.Deferred.Thread.new {
         thread = true
@@ -55,7 +56,7 @@ describe(Thread) do
         result = param
       }.trap{ |exception|
         failure = exception } end
-    assert_equal false, failure
+    assert_equal false, failure, 'Unexpected failed.'
     assert thread, "Thread did not executed."
     assert succeed, "next block did not executed."
     assert_equal uuid, result

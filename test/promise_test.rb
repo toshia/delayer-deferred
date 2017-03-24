@@ -69,18 +69,18 @@ describe(Delayer::Deferred::Promise) do
         @chain = @promise.trap{|x| @record = x + 1 }
       end
 
-      it 'should execute trap block if called promise#call' do
+      it 'should execute trap block if called promise#fail' do
         val = rand(1000)
         eval_all_events(@delayer) do
-          @promise.call(val)
+          @promise.fail(val)
         end
         assert_equal val + 1, @record, ->{ "trap block did not executed.\n[[#{@chain.graph_draw}]]" }
       end
 
-      it "shouldn't execute trap block if called promise#fail" do
+      it "shouldn't execute trap block if called promise#call" do
         val = rand(1000)
         eval_all_events(@delayer) do
-          @promise.fail(val)
+          @promise.call(val)
         end
         refute_equal val + 1, @record, ->{ "trap block did executed.\n[[#{@chain.graph_draw}]]" }
       end

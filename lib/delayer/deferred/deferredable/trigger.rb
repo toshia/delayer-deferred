@@ -2,6 +2,7 @@
 require "delayer/deferred/deferredable"
 require "delayer/deferred/deferredable/chainable"
 require "delayer/deferred/deferredable/node_sequence"
+require "delayer/deferred/response"
 
 module Delayer::Deferred::Deferredable
 =begin rdoc
@@ -13,17 +14,17 @@ Promiseなど、親を持たず、自身がWorkerを作成できるもの。
 
     # Deferredを直ちに実行する
     def call(value = nil)
-      execute(true, value)
+      execute(Delayer::Deferred::Response::Ok.new(value))
     end
 
     # Deferredを直ちに失敗させる
     def fail(exception = nil)
-      execute(false, exception)
+      execute(Delayer::Deferred::Response::Ng.new(exception))
     end
 
     private
 
-    def execute(success, value)
+    def execute(value)
       worker = Delayer::Deferred::Worker.new(delayer: self.class.delayer,
                                              initial: value)
       worker.push(self)

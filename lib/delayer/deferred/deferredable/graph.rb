@@ -20,30 +20,71 @@ graphvizによってChainableなDeferredをDOT言語形式でダンプする機�
     # [child_only:]
     #   _true_ なら、このノードとその子孫のみを描画する。
     #   _false_ なら、再帰的に親を遡り、そこから描画を開始する。
+    # [output:]
+    #   このオブジェクトに、 _<<_ メソッドで内容が書かれる。
+    #   省略した場合は、戻り値が _String_ になる。
     # ==== Return
     # [String] DOT言語によるグラフ
-    def graph(child_only: false)
+    # [output:] 引数 output: に指定されたオブジェクト
+    def graph(child_only: false, output: String.new)
       if child_only
-        graph_child.join("\n".freeze)
+        output << "digraph Deferred {\n".freeze
+        Enumerator.new{ |yielder|
+          graph_child(output: yielder)
+        }.lazy.each{|l|
+          output << "\t#{l}\n"
+        }
+        output << '}'.freeze
       else
-        ancestor.graph(child_only: true)
+        ancestor.graph(child_only: true, output: output)
+      end
+    end
+
+    # Graph.graph の結果を内容とする一時ファイルを作成して返す。
+    # ただし、ブロックを渡された場合は、一時ファイルを引数にそのブロックを一度だけ実行し、ブロックの戻り値をこのメソッドの戻り値とする。
+    # ==== Args
+    # [&block] 一時ファイルを利用する処理
+    # ==== Return
+    # [Tempfile] ブロックを指定しなかった場合。作成された一時ファイルオブジェクト
+    # [Object] ブロックが指定された場合。ブロックの実行結果。
+    def graph_save(permanent: false, &block)
+      if block
+        Tempfile.open{|tmp|
+          graph(output: tmp)
+          tmp.seek(0)
+          block.(tmp)
+        }
+      else
+        tmp = Tempfile.open
+        graph(output: tmp).tap{|t|t.seek(0)}
+      end
+    end
+
+    # 画像ファイルとしてグラフを書き出す。
+    # dotコマンドが使えないと失敗する。
+    # ==== Args
+    # [format:] 画像の拡張子
+    # ==== Return
+    # [String] 書き出したファイル名
+    def graph_draw(dir: '/tmp', format: 'png'.freeze)
+      graph_save do |dotfile|
+        base = File.basename(dotfile.path)
+        dest = File.join(dir, "#{base}.#{format}")
+        system("dot -T#{format} #{dotfile.path} -o #{dest}")
+        dest
       end
     end
 
     # このノードとその子全てのDeferredチェインの様子を、DOT言語フォーマットで出力する。
     # Delayer::Deferred::Deferredable::Graph#graph の内部で利用されるため、将来このメソッドのインターフェイスは変更される可能性がある。
     # 子のみを描画したい場合は、graphメソッドの _child_only:_ 引数に _true_ を渡して利用する。
-    # ==== Return
-    # [Array] DOT言語によるグラフ。1行が1つの配列になっている。
-    def graph_child
+    def graph_child(output:)
+      output << graph_mynode
       if has_child?
-        [ graph_mynode,
-          *@child.graph_child,
-          "#{__id__} -> #{@child.__id__}"
-        ]
-      else
-        [graph_mynode]
+        @child.graph_child(output: output)
+        output << "#{__id__} -> #{@child.__id__}"
       end
+      nil
     end
 
     private

@@ -102,16 +102,19 @@ describe(Thread) do
     result = failure = false
     delayer = Delayer.generate_class
     uuid = SecureRandom.uuid
-    eval_all_events(delayer) do
+    node = eval_all_events(delayer) do
       delayer.Deferred.new.next{
-        delayer.Deferred.Thread.new{
-          uuid }
+        delayer.Deferred.new.next{
+          delayer.Deferred.Thread.new{
+            uuid
+          }
+        }
       }.next{ |value|
         result = value
       }.trap{ |exception|
         failure = exception }
     end
-    assert_equal uuid, result
+    assert_equal uuid, result, ->{ "[[#{node.graph_draw}]]" }
     assert_equal false, failure
   end
 

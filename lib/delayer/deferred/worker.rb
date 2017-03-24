@@ -60,7 +60,7 @@ response :: Delayer::Deferred::Response::Base Deferredに渡す値
           case response.value
           when Delayer::Deferred::Error
             raise response.value
-          when Deferredable::Chainable
+          when Deferredable::Chainable # TODO: これいらなくなったのでは
             Fiber.yield(Request::Graft.new(response.value))
             break
           end
@@ -72,7 +72,11 @@ response :: Delayer::Deferred::Response::Base Deferredに渡す値
       response = catch(:success) do
         failed = catch(:__deferredable_fail) do
           begin
-            res = Fiber.yield(Request::NEXT_WORKER).activate(argument)
+            if argument.value.is_a? Deferredable::Awaitable
+              res = +argument.value
+            else
+              res = Fiber.yield(Request::NEXT_WORKER).activate(argument)
+            end
             throw :success, res
           rescue Exception => err
             throw :__deferredable_fail, err

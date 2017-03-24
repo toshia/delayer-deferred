@@ -51,5 +51,18 @@ _value_ には、実行完了を待つDeferredが入っている。
     end
   end
 
-  NEXT_WORKER = NextWorker.new(nil)
+=begin rdoc
+一旦処理を中断して、Delayerキューに並び直すためのリクエスト。
+Tools#pass から利用される。
+新たなインスタンスは作らず、 _PASS_ にあるインスタンスを使うこと。
+=end
+  class Pass < Base
+    def accept_request(worker:, deferred:)
+      deferred.enter_pass
+      worker.resume_pass(deferred)
+    end
+  end
+
+  NEXT_WORKER = NextWorker.new(nil).freeze
+  PASS = Pass.new(nil).freeze
 end

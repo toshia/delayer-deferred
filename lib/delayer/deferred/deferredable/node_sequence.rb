@@ -42,6 +42,8 @@ module Delayer::Deferred::Deferredable
     RESERVED_C= Sequence.new(:reserved)       # 実行キュー待ち(子がいる)
     RUN       = Sequence.new(:run)            # 実行中
     RUN_C     = Sequence.new(:run)            # 実行中(子がいる)
+    PASS      = Sequence.new(:pass)           # パス中
+    PASS_C    = Sequence.new(:pass)           # パス中
     AWAIT     = Sequence.new(:await)          # Await中
     AWAIT_C   = Sequence.new(:await)          # Await中(子がいる)
     GRAFT     = Sequence.new(:await)          # 戻り値がAwaitableの時
@@ -70,13 +72,22 @@ module Delayer::Deferred::Deferredable
       .add(GENOCIDE).freeze
     RUN
       .add(RUN_C, :get_child)
+      .add(PASS)
       .add(AWAIT, :await)
       .add(STOP, :complete)
       .add(GENOCIDE).freeze
     RUN_C
+      .add(PASS_C)
       .add(AWAIT_C, :await)
       .add(CALL_CHILD, :complete)
       .exception(Delayer::Deferred::MultipleAssignmentError, :get_child)
+      .add(GENOCIDE).freeze
+    PASS
+      .add(PASS_C, :get_child)
+      .add(RUN, :resume)
+      .add(GENOCIDE).freeze
+    PASS_C
+      .add(RUN_C, :resume)
       .add(GENOCIDE).freeze
     AWAIT
       .add(RUN, :resume)

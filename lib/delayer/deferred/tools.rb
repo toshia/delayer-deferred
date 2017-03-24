@@ -21,7 +21,7 @@ module Delayer::Deferred
     # 実行中のDeferredを、Delayerのタイムリミットが来ている場合に限り一旦中断する。
     # 長期に渡る可能性のある処理で、必要に応じて他のタスクを先に実行してもよい場合に呼び出す。
     def pass
-      Fiber.yield(:pass) if delayer.expire?
+      Fiber.yield(Request::PASS) if delayer.expire?
     end
 
     # 複数のdeferredを引数に取って、それら全ての実行が終了したら、

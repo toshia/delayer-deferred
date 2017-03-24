@@ -71,6 +71,14 @@ module Delayer::Deferred::Deferredable
       change_sequence(:reserve)
     end
 
+    def enter_pass
+      change_sequence(:pass)
+    end
+
+    def exit_pass
+      change_sequence(:resume)
+    end
+
     protected
 
     # 親を再帰的に辿り、一番最初のノードを返す。

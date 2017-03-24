@@ -51,6 +51,18 @@ response :: Delayer::Deferred::Response::Base Deferredに渡す値
       nil
     end
 
+    # Tools#pass から復帰した時に呼ばれる。
+    # ==== Args
+    # [deferred] 現在実行中のDeferred
+    def resume_pass(deferred)
+      deferred.exit_pass
+      @delayer.new do
+        next if deferred.spoiled?
+        fiber.resume(nil).accept_request(worker: self,
+                                         deferred: deferred)
+      end
+    end
+
     private
 
     def fiber

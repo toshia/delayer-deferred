@@ -66,7 +66,7 @@ graphvizによってChainableなDeferredをDOT言語形式でダンプする機�
     # [format:] 画像の拡張子
     # ==== Return
     # [String] 書き出したファイル名
-    def graph_draw(dir: '/tmp', format: 'png'.freeze)
+    def graph_draw(dir: '/tmp', format: 'svg'.freeze)
       graph_save do |dotfile|
         base = File.basename(dotfile.path)
         dest = File.join(dir, "#{base}.#{format}")

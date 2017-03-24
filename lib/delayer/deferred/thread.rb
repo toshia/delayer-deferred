@@ -36,7 +36,6 @@ class Thread
     Thread.new(self) do |tt|
       __promise_callback(tt, promise)
     end
-    p promise
     promise
   end
 

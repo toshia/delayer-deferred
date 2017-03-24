@@ -58,7 +58,7 @@ response :: Delayer::Deferred::Response::Base Deferredに渡す値
         loop do
           response = wait_and_activate(response)
           case response.value
-          when Delayer::Deferred::Error
+          when Delayer::Deferred::SequenceError
             raise response.value
           when Deferredable::Chainable # TODO: これいらなくなったのでは
             Fiber.yield(Request::Graft.new(response.value))

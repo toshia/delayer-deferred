@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
-require "delayer/deferred/chain"
+require "delayer/deferred/chain/base"
 
-module Delayer::Deferred
-  class Trap < Chain
+module Delayer::Deferred::Chain
+  class Trap < Base
     def evaluate?(response)
       response.ng?
     end

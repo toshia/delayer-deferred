@@ -13,7 +13,7 @@ class Thread
   # 新しいDeferredのインスタンスを返す
   # TODO: procが空のとき例外を発生させる
   def next(&proc)
-    add_child(Delayer::Deferred::Next.new(&proc))
+    add_child(Delayer::Deferred::Chain::Next.new(&proc))
   end
   alias deferred next
 
@@ -21,7 +21,7 @@ class Thread
   # 新しいDeferredのインスタンスを返す
   # TODO: procが空のとき例外を発生させる
   def trap(&proc)
-    add_child(Delayer::Deferred::Trap.new(&proc))
+    add_child(Delayer::Deferred::Chain::Trap.new(&proc))
   end
   alias error trap
 

@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
-require "delayer/deferred/chain"
+require "delayer/deferred/chain/base"
 
-module Delayer::Deferred
-  class Next < Chain
+module Delayer::Deferred::Chain
+  class Next < Base
     def evaluate?(response)
       response.ok?
     end

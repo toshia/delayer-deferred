@@ -2,21 +2,7 @@
 require "delayer/deferred/version"
 
 module Delayer::Deferred
-  module Deferredable
-
-  #   # second 秒待って次を実行する
-  #   # ==== Args
-  #   # [second] 待つ秒数(second)
-  #   # ==== Return
-  #   # Deferred
-  #   def wait(second)
-  #     self.next{ Thread.new{ sleep(second) } } end
-
-  #   # TODO:
-  #   def assigned?
-  #     defined?(@next)
-  #   end
-  end
+  module Deferredable; end
 end
 
 require "delayer/deferred/deferredable/awaitable"

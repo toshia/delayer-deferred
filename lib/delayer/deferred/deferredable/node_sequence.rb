@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-require "delayer/deferred/deferredable"
 require 'delayer/deferred/error'
 
 module Delayer::Deferred::Deferredable

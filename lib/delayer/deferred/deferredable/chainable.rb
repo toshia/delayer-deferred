@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-require "delayer/deferred/deferredable"
 require "delayer/deferred/deferredable/awaitable"
 require "delayer/deferred/deferredable/graph"
 require "delayer/deferred/deferredable/node_sequence"
@@ -16,7 +15,7 @@ module Delayer::Deferred::Deferredable
     # 新しいDeferredのインスタンスを返す
     # TODO: procが空のとき例外を発生させる
     def next(&proc)
-      add_child(Delayer::Deferred::Next.new(&proc))
+      add_child(Delayer::Deferred::Chain::Next.new(&proc))
     end
     alias deferred next
 
@@ -24,7 +23,7 @@ module Delayer::Deferred::Deferredable
     # 新しいDeferredのインスタンスを返す
     # TODO: procが空のとき例外を発生させる
     def trap(&proc)
-      add_child(Delayer::Deferred::Trap.new(&proc))
+      add_child(Delayer::Deferred::Chain::Trap.new(&proc))
     end
     alias error trap
 

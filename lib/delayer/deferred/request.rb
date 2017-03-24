@@ -47,7 +47,7 @@ _value_ には、実行完了を待つDeferredが入っている。
     alias_method :foreign_deferred, :value
     def accept_request(worker:, deferred:)
       deferred.enter_await
-      foreign_deferred.add_child(Delayer::Deferred::Await.new(worker: worker, deferred: deferred))
+      foreign_deferred.add_child(Delayer::Deferred::Chain::Await.new(worker: worker, deferred: deferred))
     end
   end
 

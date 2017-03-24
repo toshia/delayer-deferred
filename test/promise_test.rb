@@ -26,7 +26,7 @@ describe(Delayer::Deferred::Promise) do
       end
 
       it 'was generated' do
-        assert_kind_of Delayer::Deferred::Next, @promise
+        assert_kind_of Delayer::Deferred::Chain::Next, @promise
       end
 
       it "doesn't have child" do

@@ -99,7 +99,7 @@ describe(Delayer::Deferred) do
   end
 
   it "assign twice" do
-    succeed = failure = false
+    succeed = false
     delayer = Delayer.generate_class
     assert_raises(Delayer::Deferred::MultipleAssignmentError) do
       eval_all_events(delayer) do

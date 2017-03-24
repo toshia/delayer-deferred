@@ -110,7 +110,7 @@ module Delayer::Deferred::Deferredable
       when NodeSequence::BURST_OUT
         call_child_observer
       when NodeSequence::GENOCIDE
-        @parent.cancel if @parent
+        @parent.cancel if defined?(@parent) and @parent
       end
     end
 

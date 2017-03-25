@@ -72,9 +72,6 @@ response :: Delayer::Deferred::Response::Base Deferredに渡す値
           case response.value
           when Delayer::Deferred::SequenceError
             raise response.value
-          when Deferredable::Chainable # TODO: これいらなくなったのでは
-            Fiber.yield(Request::Graft.new(response.value))
-            break
           end
         end
       }.tap{|f| f.resume(@initial); @initial = nil }

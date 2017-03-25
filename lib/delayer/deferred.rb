@@ -14,12 +14,6 @@ module Delayer
       #真ならデバッグ情報を集める
       attr_accessor :debug
 
-      def new(value=nil, &proc)
-        promise = Delayer::Deferred::Promise.new
-        promise.call(value)
-        promise.next(&proc)
-      end
-
       def method_missing(*rest, &block)
         Delayer::Deferred::Deferred.__send__(*rest, &block)
       end

@@ -16,5 +16,18 @@ module Delayer::Deferred::Chain
       change_sequence(:complete)
     end
 
+    def graph_child(output:)
+      output << graph_mynode
+      if has_child?
+        @child.graph_child(output: output)
+        @awaiting_deferred.graph_child(output: output)
+        output << "#{__id__} -> #{@child.__id__}"
+      end
+      nil
+    end
+
+    def node_name
+      inspect
+    end
   end
 end

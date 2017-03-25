@@ -27,6 +27,10 @@ Fiberが次のWorkerを要求している時に返す値。
 =begin rdoc
 Chainable#+@ が呼ばれた時に、一旦そこで処理を止めるためのリクエスト。
 _value_ には、実行完了を待つDeferredが入っている。
+==== わかりやすい！
+  accept_requestメソッドの引数のdeferred {
+    +value
+  }
 =end
   class Await < Base
     alias_method :foreign_deferred, :value

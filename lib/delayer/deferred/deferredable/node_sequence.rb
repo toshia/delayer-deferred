@@ -47,7 +47,8 @@ module Delayer::Deferred::Deferredable
     PASS_C    = Sequence.new(:pass)           # パス中
     AWAIT     = Sequence.new(:await)          # Await中
     AWAIT_C   = Sequence.new(:await)          # Await中(子がいる)
-    GRAFT     = Sequence.new(:await)          # 戻り値がAwaitableの時
+    GRAFT     = Sequence.new(:graft)          # 戻り値がAwaitableの時
+    GRAFT_C   = Sequence.new(:graft)          # 戻り値がAwaitableの時(子がいる)
     CALL_CHILD= Sequence.new(:call_child)     # 完了、子がいる
     STOP      = Sequence.new(:stop)           # 完了、子なし
     WAIT      = Sequence.new(:wait)           # 完了、オブザーバ登録済み
@@ -99,13 +100,18 @@ module Delayer::Deferred::Deferredable
       .exception(Delayer::Deferred::MultipleAssignmentError, :get_child)
       .add(GENOCIDE).freeze
     CALL_CHILD
-      .add(GRAFT, :await)
+      .add(GRAFT_C, :await)
       .add(ROTTEN, :called)
       .add(GENOCIDE).freeze
     GRAFT
+      .add(STOP, :resume)
+      .add(GRAFT_C, :get_child)
+      .add(GENOCIDE).freeze
+    GRAFT_C
       .add(CALL_CHILD, :resume)
       .add(GENOCIDE).freeze
     STOP
+      .add(GRAFT, :await)
       .add(WAIT, :gaze)
       .add(GENOCIDE).freeze
     WAIT

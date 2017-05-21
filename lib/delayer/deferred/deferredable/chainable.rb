@@ -129,6 +129,11 @@ module Delayer::Deferred::Deferredable
         call_child_observer
       when NodeSequence::GENOCIDE
         @parent.cancel if defined?(@parent) and @parent
+      when NodeSequence::RESERVED_C, NodeSequence::RUN_C, NodeSequence::PASS_C, NodeSequence::AWAIT_C, NodeSequence::GRAFT_C
+        if !has_child?
+          notice "child: #{@child.inspect}"
+          raise Delayer::Deferred::SequenceError.new("Sequence changed `#{old_seq.name}' to `#{flow}', but it has no child")
+        end
       end
     end
 

@@ -31,8 +31,13 @@ response :: Delayer::Deferred::Response::Base Deferredに渡す値
       deferred.reserve_activate
       @delayer.new do
         next if deferred.spoiled?
-        fiber.resume(deferred).accept_request(worker: self,
-                                              deferred: deferred)
+        begin
+          fiber.resume(deferred).accept_request(worker: self,
+                                                deferred: deferred)
+        rescue Delayer::Deferred::SequenceError => err
+          err.deferred = deferred
+          raise
+        end
       end
       nil
     end

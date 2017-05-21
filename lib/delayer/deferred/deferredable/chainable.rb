@@ -70,6 +70,19 @@ module Delayer::Deferred::Deferredable
       self
     end
 
+    def awaited
+      @awaited ||= [].freeze
+    end
+
+    def has_awaited?
+      not awaited.empty?
+    end
+
+    def add_awaited(awaitable)
+      @awaited = [*awaited, awaitable].freeze
+      self
+    end
+
     # activateメソッドを呼ぶDelayerジョブを登録する寸前に呼ばれる。
     def reserve_activate
       change_sequence(:reserve)

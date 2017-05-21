@@ -6,6 +6,7 @@ module Delayer::Deferred::Chain
     def initialize(worker:, deferred:)
       super()
       @worker, @awaiting_deferred = worker, deferred
+      deferred.add_awaited(self)
     end
 
     def activate(response)

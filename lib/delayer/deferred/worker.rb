@@ -82,9 +82,13 @@ response :: Delayer::Deferred::Response::Base Deferredに渡す値
         failed = catch(:__deferredable_fail) do
           begin
             if argument.value.is_a? Deferredable::Awaitable
-              res = +argument.value
+              throw :success, +argument.value
             else
-              res = Fiber.yield(Request::NEXT_WORKER).activate(argument)
+              defer = Fiber.yield(Request::NEXT_WORKER)
+              res = defer.activate(argument)
+              if res.is_a? Delayer::Deferred::Deferredable::Awaitable
+                defer.add_awaited(res)
+              end
             end
             throw :success, res
           rescue Exception => err

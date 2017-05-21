@@ -77,12 +77,22 @@ graphvizによってChainableなDeferredをDOT言語形式でダンプする機�
 
     # このノードとその子全てのDeferredチェインの様子を、DOT言語フォーマットで出力する。
     # Delayer::Deferred::Deferredable::Graph#graph の内部で利用されるため、将来このメソッドのインターフェイスは変更される可能性がある。
-    # 子のみを描画したい場合は、graphメソッドの _child_only:_ 引数に _true_ を渡して利用する。
     def graph_child(output:)
       output << graph_mynode
       if has_child?
         @child.graph_child(output: output)
         output << "#{__id__} -> #{@child.__id__}"
+      end
+      if has_awaited?
+        awaited.each do |awaitable|
+          if awaitable.is_a?(Delayer::Deferred::Deferredable::Chainable)
+            awaitable.ancestor.graph_child(output: output)
+          else
+            label = "#{awaitable.class}"
+            output << "#{awaitable.__id__} [shape=oval,label=#{label.inspect}]"
+          end
+          output << "#{awaitable.__id__} -> #{__id__} [label = \"await\", style = \"dotted\"]"
+        end
       end
       nil
     end

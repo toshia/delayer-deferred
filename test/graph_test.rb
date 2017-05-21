@@ -11,7 +11,7 @@ describe(Delayer::Deferred) do
   describe 'auto execution Promise' do
     it 'should include Promise result of Promise.graph' do
       promise = Delayer::Deferred::Promise.new
-      assert_includes promise.graph, 'Promise', ->{"[[#{promise.graph_draw}]]"}
+      assert_includes promise.graph, 'egg', ->{"[[#{promise.graph_draw}]]"}
       assert_includes promise.graph, 'reserved', ->{"[[#{promise.graph_draw}]]"}
     end
   end
@@ -19,7 +19,7 @@ describe(Delayer::Deferred) do
   describe 'Promise' do
     it 'should include Promise result of Promise.graph' do
       promise = Delayer::Deferred::Promise.new(true)
-      assert_includes promise.graph, 'Promise', ->{"[[#{promise.graph_draw}]]"}
+      assert_includes promise.graph, 'egg', ->{"[[#{promise.graph_draw}]]"}
       assert_includes promise.graph, 'fresh', ->{"[[#{promise.graph_draw}]]"}
     end
   end
@@ -46,8 +46,6 @@ describe(Delayer::Deferred) do
         buf << :f
       }
       eval_all_events
-      puts "[[#{promise_a.graph_draw}]]"
-      puts "[[#{promise_b.graph_draw}]]"
     end
   end
 

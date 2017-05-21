@@ -12,7 +12,8 @@ module Delayer::Deferred::Deferredable
     attr_reader :child
 
     # このDeferredが成功した場合の処理を追加する。
-    # 新しいDeferredのインスタンスを返す
+    # 新しいDeferredのインスタンスを返す。
+    # このメソッドはスレッドセーフです。
     # TODO: procが空のとき例外を発生させる
     def next(&proc)
       add_child(Delayer::Deferred::Chain::Next.new(&proc))
@@ -20,14 +21,16 @@ module Delayer::Deferred::Deferredable
     alias deferred next
 
     # このDeferredが失敗した場合の処理を追加する。
-    # 新しいDeferredのインスタンスを返す
+    # 新しいDeferredのインスタンスを返す。
+    # このメソッドはスレッドセーフです。
     # TODO: procが空のとき例外を発生させる
     def trap(&proc)
       add_child(Delayer::Deferred::Chain::Trap.new(&proc))
     end
     alias error trap
 
-    # この一連のDeferredをこれ以上実行しない
+    # この一連のDeferredをこれ以上実行しない。
+    # このメソッドはスレッドセーフです。
     def cancel
       change_sequence(:genocide) unless spoiled?
     end
@@ -38,6 +41,7 @@ module Delayer::Deferred::Deferredable
 
     # 子を追加する。
     # _Delayer::Deferred::Chainable_ を直接指定できる。通常外部から呼ぶときは _next_ か _trap_ メソッドを使うこと。
+    # このメソッドはスレッドセーフです。
     # ==== Args
     # [chainable] 子となるDeferred
     # ==== Return
@@ -54,6 +58,7 @@ module Delayer::Deferred::Deferredable
 
     # 子が追加された時に一度だけコールバックするオブジェクトを登録する。
     # observerと言っているが、実際には _Delayer::Deferred::Worker_ を渡して利用している。
+    # このメソッドはスレッドセーフです。
     # ==== Args
     # [observer] pushメソッドを備えているもの。引数に _@child_ の値が渡される
     # ==== Return

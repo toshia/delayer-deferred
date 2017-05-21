@@ -1,6 +1,8 @@
 # -*- coding: utf-8 -*-
 require 'delayer/deferred/error'
 
+require 'thread'
+
 module Delayer::Deferred::Deferredable
   module NodeSequence
     class Sequence
@@ -113,21 +115,26 @@ module Delayer::Deferred::Deferredable
       .add(ROTTEN, :called)
       .add(GENOCIDE).freeze
 
+    SEQUENCE_LOCK = Monitor.new
+
     def sequence
       @sequence ||= FRESH
     end
 
+    # このメソッドはスレッドセーフです
     def change_sequence(flow, &block)
-      old_seq = sequence
-      new_seq = @sequence = sequence.pull(flow)
-      (@seq_logger ||= [old_seq]) << new_seq
-      if block
-        result = block.()
-        on_sequence_changed(old_seq, flow, new_seq)
-        result
-      else
-        on_sequence_changed(old_seq, flow, new_seq)
-        nil
+      SEQUENCE_LOCK.synchronize do
+        old_seq = sequence
+        new_seq = @sequence = sequence.pull(flow)
+        (@seq_logger ||= [old_seq]) << new_seq
+        if block
+          result = block.()
+          on_sequence_changed(old_seq, flow, new_seq)
+          result
+        else
+          on_sequence_changed(old_seq, flow, new_seq)
+          nil
+        end
       end
     end
 

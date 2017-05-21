@@ -43,9 +43,14 @@ class Thread
 
   def __promise_callback(tt, promise)
     begin
-      promise.call(tt.value)
+      result = tt.value
+      self.class.delayer.new do
+        promise.call(result)
+      end
     rescue Exception => err
-      promise.fail(err)
+      self.class.delayer.new do
+        promise.fail(err)
+      end
     end
   end
 

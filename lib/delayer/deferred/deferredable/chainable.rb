@@ -119,5 +119,14 @@ module Delayer::Deferred::Deferredable
       self.class.to_s
     end
 
+    def graph_mynode
+      if defined?(@seq_logger)
+        label = "#{node_name}\n(#{@seq_logger.map(&:name).join('→')})"
+      else
+        label = "#{node_name}\n(#{sequence.name})"
+      end
+      "#{__id__} [shape=#{graph_shape},label=#{label.inspect}]"
+    end
+
   end
 end

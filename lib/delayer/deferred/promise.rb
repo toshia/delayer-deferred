@@ -8,9 +8,9 @@ module Delayer::Deferred
     include Deferredable::Trigger
 
     class << self
-      def new(stop=false, &block)
-        result = promise = super()
-        result = super().next(&block) if block_given?
+      def new(stop=false, name: caller_locations(1,1).first.to_s,  &block)
+        result = promise = super(name: name)
+        result = promise.next(&block) if block_given?
         promise.call(true) unless stop
         result
       end
@@ -42,6 +42,11 @@ module Delayer::Deferred
       end
     end
 
+    def initialize(name:)
+      super()
+      @name = name
+    end
+
     def activate(response)
       change_sequence(:activate)
       change_sequence(:complete)
@@ -66,5 +71,8 @@ module Delayer::Deferred
       'egg'.freeze
     end
 
+    def node_name
+      @name.to_s
+    end
   end
 end

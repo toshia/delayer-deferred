@@ -27,7 +27,16 @@ module Delayer::Deferred::Chain
     end
 
     def node_name
-      inspect
+      "Await"
+    end
+
+    def graph_shape
+      'circle'.freeze
+    end
+
+    def graph_mynode
+      label = "#{node_name}\n(#{sequence.name})"
+      "#{__id__} [shape=#{graph_shape},label=#{label.inspect}]"
     end
   end
 end

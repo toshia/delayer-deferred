@@ -15,6 +15,10 @@ Fiberが次のWorkerを要求している時に返す値。
 新たなインスタンスは作らず、 _NEXT_WORKER_ にあるインスタンスを使うこと。
 =end
   class NextWorker < Base
+    # _deferred_ に渡された次のChainableに、 _deferred_ の戻り値を渡す要求を出す。
+    # ==== Args
+    # [deferred] 実行が完了したDeferred 。次のDeferredとして _deferred.child_ を呼び出す
+    # [worker] このDeferredチェインを実行しているWorker
     def accept_request(worker:, deferred:)
       if deferred.has_child?
         worker.push(deferred.child)

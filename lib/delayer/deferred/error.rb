@@ -10,4 +10,13 @@ module Delayer::Deferred
       @process = process
     end
   end
+
+  SequenceError = Class.new(Error) do
+    attr_accessor :deferred
+    def initialize(message, deferred: nil)
+      super(message)
+      @deferred = deferred
+    end
+  end
+  MultipleAssignmentError = Class.new(SequenceError)
 end

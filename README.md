@@ -1,7 +1,6 @@
 # Delayer::Deferred
 
-Delayerを使って、jsdeferredをRubyに移植したものです。
-jsdeferredでできること以外に、Thread、Enumeratorを拡張します。
+Delayerの、ブロックを実行キューにキューイングする機能を利用し、エラー処理やasync/awaitのような機能をサポートするライブラリです。
 
 ## Installation
 
@@ -101,7 +100,7 @@ Error occured!
 ```
 
 ### Thread
-Threadには、Delayer::Deferred::Deferredableモジュールがincludeされていて、nextやtrapメソッドが使えます。
+Threadには、nextやtrapメソッドが実装されているので、Deferredのように扱うことができます。
 
 ```ruby
 Delayer.default = Delayer.generate_class  # Delayerの準備
@@ -116,6 +115,8 @@ Delayer.run
 ```
 2
 ```
+
+この場合、nextやtrapのブロックは、全て `Delayer.run` メソッドが実行された側のThreadで実行されます。
 
 ### Automatically Divide a Long Loop
 `Enumerable#deach`, `Enumerator#deach`はeachの変種で、Delayerのexpireの値よりループに時間がかかったら一旦処理を中断して、続きを実行するDeferredを新たに作ります。
@@ -156,6 +157,61 @@ divided
 
 また、このメソッドはDeferredを返すので、ループが終わった後に処理をしたり、エラーを受け取ったりできます。
 
+### Pass to another Delayer
+
+Deferredのコンテキストの中で `Deferred.pass` を呼ぶと、そこで一旦処理が中断し、キューの最後に並び直します。
+他のDelayerが処理され終わると `Deferred.pass` から処理が戻ってきて、再度そこから実行が再開されます。
+
+`Deferred.pass` は常に処理を中断するわけではなく、Delayerの時間制限を過ぎている場合にのみ処理をブレークします。
+用途としては `Enumerator#deach` が使えないようなループの中で毎回呼び出して、長時間処理をブロックしないようにするといった用途が考えられます。
+
+`Enumerator#deach` は `Deferred.pass` を用いて作られています。
+
+### Combine Deferred
+
+`Deferred.when` は、引数に2つ以上のDeferredを受け取り、新たなDeferredを一つ返します。
+
+引数のDeferredすべてが正常に終了したら、戻り値のDeferredのnextブロックが呼ばれ、whenの引数の順番通りに戻り値が渡されます。
+複数のDeferredがあって、それらすべてが終了するのを待ち合わせる時に使うと良いでしょう。
+
+```ruby
+web_a = Thread.new{ open("http://example.com/a.html") }
+web_b = Thread.new{ open("http://example.com/b.html") }
+web_c = Thread.new{ open("http://example.com/c.html") }
+
+# 引数の順番は対応している
+Deferred.when(web_a, web_b, web_c).next do |a, b, c|
+  ...
+end
+
+# 配列を渡すことも出来る
+Deferred.when([web_a, web_b, web_c]).next do |a, b, c|
+  ...
+end
+
+```
+
+引数のDeferredのうち、どれか一つでも失敗すると、直ちに `Deferred.when` の戻り値のtrapブロックが呼ばれます。trapの引数は、失敗したDeferredのそれです。
+
+どれか一つでも失敗すると、他のDeferredが成功していたとしてもその結果は破棄されるということに気をつけてください。より細かく制御したい場合は、Async/Awaitを利用しましょう。
+
+```ruby
+divzero = Delayer::Deferred.new {
+  1 / 0
+}
+web_a = Thread.new{ open("http://example.com/a.html") }
+
+Deferred.when(divzero, web_a).next{
+  puts 'success'
+}.trap{|err|
+  p err
+}
+```
+
+```
+\#<ZeroDivisionError: divided by 0>
+```
+
 ### Async/Await
 
 Deferred#next や Deferred#trap のブロック内では、Deferredable#+@ が使えます。非同期な処理を同期処理のように書くことができます。
@@ -163,7 +219,7 @@ Deferred#next や Deferred#trap のブロック内では、Deferredable#+@ が�
 +@を呼び出すと、呼び出し元のDeferredの処理が一時停止し、+@のレシーバになっているDeferredableが完了した後に処理が再開されます。また、戻り値はレシーバのDeferredableのそれになります。
 
 ```
-request = Thread.new{ open("http://mikutter.hachune.net/download/unstable.json") }
+request = Thread.new{ open("http://mikutter.hachune.net/download/unstable.json").read }
 Deferred.next{
   puts "最新の不安定版mikutterのバージョンは"
   response = JSON.parse(+request)

@@ -98,6 +98,20 @@ describe(Delayer::Deferred) do
     assert succeed, "Deferred did not executed."
   end
 
+  it "assign twice" do
+    succeed = false
+    delayer = Delayer.generate_class
+    assert_raises(Delayer::Deferred::MultipleAssignmentError) do
+      eval_all_events(delayer) do
+        defer = delayer.Deferred.new.next {
+          succeed = 0
+        }
+        defer.next{ succeed = 1 }
+        defer.next{ succeed = 2 }
+      end
+    end
+  end
+
   describe "Deferred.when" do
     it "give 3 deferred" do
       result = failure = false

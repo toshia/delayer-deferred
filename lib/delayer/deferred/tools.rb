@@ -18,6 +18,12 @@ module Delayer::Deferred
     def fail(value)
       throw(:__deferredable_fail, value) end
 
+    # 実行中のDeferredを、Delayerのタイムリミットが来ている場合に限り一旦中断する。
+    # 長期に渡る可能性のある処理で、必要に応じて他のタスクを先に実行してもよい場合に呼び出す。
+    def pass
+      Fiber.yield(Request::PASS) if delayer.expire?
+    end
+
     # 複数のdeferredを引数に取って、それら全ての実行が終了したら、
     # その結果を引数の順番通りに格納したArrayを引数に呼ばれるDeferredを返す。
     # 引数のDeferredが一つでも失敗するとこのメソッドの返すDeferredも失敗する。
@@ -27,16 +33,20 @@ module Delayer::Deferred
     # Deferred
     def when(*args)
       return self.next{[]} if args.empty?
-      defer, *follow = args
-      raise TypeError, "Argument of Deferred.when must be Delayer::Deferred::Deferredable" unless defer.is_a? Delayer::Deferred::Deferredable
-      if follow.empty?
-        defer.next{|res| [res] }
-      else
-        remain = self.when(*follow)
-        defer.next do |res|
-          remain.next do |follow_res|
-            follow_res.unshift(res) end end end end
-
+      args = args.flatten
+      args.each_with_index{|d, index|
+        unless d.is_a?(Deferredable::Chainable) || d.is_a?(Deferredable::Awaitable)
+          raise TypeError, "Argument #{index} of Deferred.when must be #{Deferredable::Chainable}, but given #{d.class}"
+        end
+        if d.respond_to?(:has_child?) && d.has_child?
+          raise "Already assigned child for argument #{index}"
+        end
+      }
+      defer, *follow = *args
+      defer.next{|res|
+        [res, *follow.map{|d| +d }]
+      }
+    end
     # Kernel#systemを呼び出して、コマンドが成功たら成功するDeferredを返す。
     # 失敗した場合、trap{}ブロックには $? の値(Process::Status)か、例外が発生した場合それが渡される
     # ==== Args

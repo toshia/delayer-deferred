@@ -10,25 +10,26 @@ require "delayer/deferred/version"
 
 module Delayer
   module Deferred
-    extend Delayer::Deferred::Tools
-
     class << self
       #真ならデバッグ情報を集める
       attr_accessor :debug
 
-      def new(*rest, &proc)
-        Delayer::Deferred::Deferred.new(*rest, &proc) end
+      def method_missing(*rest, &block)
+        Delayer::Deferred::Deferred.__send__(*rest, &block)
+      end
     end
   end
 
   module Extend
-    def Deferred
-      @deferred ||= begin
-                      the_delayer = self
-                      Class.new(::Delayer::Deferred::Deferred) {
-                        define_singleton_method(:delayer) {
-                          the_delayer } } end
+    def Promise
+      @promise ||= begin
+                     the_delayer = self
+                     Class.new(::Delayer::Deferred::Promise) {
+                       define_singleton_method(:delayer) {
+                         the_delayer } } end
     end
+    alias :Deferred :Promise
+    #deprecate :Deferred, "Promise", 2018, 03
   end
 end
 

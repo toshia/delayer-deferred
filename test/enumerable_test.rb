@@ -31,7 +31,7 @@ describe(Enumerable) do
           c = a + b
           yielder << a
           a, b = b, c end end
-      timeout(1) {
+      Timeout.timeout(1) {
         fib.deach(@delayer) {|digit|
           log << digit
         }.next{

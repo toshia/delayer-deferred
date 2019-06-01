@@ -18,15 +18,15 @@ Gem::Specification.new do |spec|
   spec.test_files    = spec.files.grep(%r{^(test|spec|features)/})
   spec.require_paths = ["lib"]
 
-  spec.required_ruby_version = '>= 2.0.0'
+  spec.required_ruby_version = '>= 2.4.0'
 
-  spec.add_dependency "delayer", ">= 0.0.2", "< 0.1"
+  spec.add_dependency "delayer", ">= 1.0", "< 2.0"
 
-  spec.add_development_dependency "bundler", "~> 1.7"
-  spec.add_development_dependency "rake", "~> 10.0"
-  spec.add_development_dependency "minitest", "~> 5.7"
-  spec.add_development_dependency "simplecov"
-  spec.add_development_dependency "ruby-prof"
+  spec.add_development_dependency "bundler"
+  spec.add_development_dependency "rake", ">= 12.3.2"
+  spec.add_development_dependency "minitest", ">= 5.11.3"
+  spec.add_development_dependency "simplecov", '>= 0.16.1'
+  spec.add_development_dependency "ruby-prof", '>= 0.18.0'
   spec.add_development_dependency 'guard'
   spec.add_development_dependency 'guard-shell'
   spec.add_development_dependency 'guard-rake'

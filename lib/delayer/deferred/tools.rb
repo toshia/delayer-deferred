@@ -32,8 +32,8 @@ module Delayer::Deferred
     # ==== Return
     # Deferred
     def when(*args)
-      return self.next{[]} if args.empty?
       args = args.flatten
+      return self.next{ [].freeze } if args.empty?
       args.each_with_index{|d, index|
         unless d.is_a?(Deferredable::Chainable) || d.is_a?(Deferredable::Awaitable)
           raise TypeError, "Argument #{index} of Deferred.when must be #{Deferredable::Chainable}, but given #{d.class}"
@@ -47,6 +47,7 @@ module Delayer::Deferred
         [res, *follow.map{|d| +d }]
       }
     end
+
     # Kernel#systemを呼び出して、コマンドが成功たら成功するDeferredを返す。
     # 失敗した場合、trap{}ブロックには $? の値(Process::Status)か、例外が発生した場合それが渡される
     # ==== Args

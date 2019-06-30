@@ -189,6 +189,18 @@ describe(Delayer::Deferred) do
       assert_empty result
     end
 
+    it "empty array given" do
+      result = failure = false
+      delayer = Delayer.generate_class
+      eval_all_events(delayer) do
+        delayer.Deferred.when([]).next{ |values|
+          result = values
+        }.trap{ |exception|
+          failure = exception }  end
+      assert_equal false, failure
+      assert_empty result
+    end
+
     it "no deferred given for default delayer" do
       result = failure = false
       eval_all_events do

@@ -14,8 +14,16 @@ module Delayer
       #真ならデバッグ情報を集める
       attr_accessor :debug
 
+      def new(*rest, name: caller_locations(1,1).first.to_s, &block)
+        super(*rest, name: name, &block)
+      end
+
       def method_missing(*rest, &block)
-        Delayer::Deferred::Deferred.__send__(*rest, &block)
+        Delayer::Deferred::Promise.__send__(*rest, &block)
+      end
+
+      def respond_to_missing?(symbol, include_private)
+        Delayer::Deferred::Promise.respond_to?(symbol, include_private)
       end
     end
   end

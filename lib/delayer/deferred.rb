@@ -18,8 +18,8 @@ module Delayer
         super(*rest, name: name, &block)
       end
 
-      def method_missing(*rest, &block)
-        Delayer::Deferred::Promise.__send__(*rest, &block)
+      def method_missing(*rest, **kwrest, &block)
+        Delayer::Deferred::Promise.__send__(*rest, **kwrest, &block)
       end
 
       def respond_to_missing?(symbol, include_private)

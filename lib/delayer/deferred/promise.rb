@@ -8,7 +8,7 @@ module Delayer::Deferred
     include Deferredable::Trigger
 
     class << self
-      def new(stop=false, name: caller_locations(1,1).first.to_s,  &block)
+      def new(stop=false, name: caller_locations(1,1).first.to_s, &block)
         result = promise = super(name: name)
         result = promise.next(&block) if block_given?
         promise.call(true) unless stop

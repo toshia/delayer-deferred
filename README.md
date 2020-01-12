@@ -2,6 +2,8 @@
 
 Delayerの、ブロックを実行キューにキューイングする機能を利用し、エラー処理やasync/awaitのような機能をサポートするライブラリです。
 
+[![toshia](https://circleci.com/gh/toshia/delayer-deferred.svg?style=svg)](https://circleci.com/gh/toshia/delayer-deferred)
+
 ## Installation
 
 Add this line to your application's Gemfile:

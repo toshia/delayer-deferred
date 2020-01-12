@@ -19,7 +19,11 @@ module Delayer
       end
 
       def method_missing(*rest, **kwrest, &block)
-        Delayer::Deferred::Promise.__send__(*rest, **kwrest, &block)
+        if kwrest.empty?
+          Delayer::Deferred::Promise.__send__(*rest, &block)
+        else
+          Delayer::Deferred::Promise.__send__(*rest, **kwrest, &block)
+        end
       end
 
       def respond_to_missing?(symbol, include_private)

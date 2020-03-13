@@ -20,7 +20,7 @@ Gem::Specification.new do |spec|
 
   spec.required_ruby_version = '>= 2.4.0'
 
-  spec.add_dependency "delayer", ">= 1.0", "< 2.0"
+  spec.add_dependency "delayer", ">= 1.1.2", "< 2.0"
 
   spec.add_development_dependency "bundler"
   spec.add_development_dependency "rake", ">= 12.3.2"

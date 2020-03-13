@@ -1,7 +1,7 @@
 module TestUtils
-  def eval_all_events(delayer=Delayer)
+  def eval_all_events(delayer=Delayer, &block)
     native = Thread.list
-    result = yield if block_given?
+    result = block&.call()
     while not(delayer.empty? and (Thread.list - native).empty?)
       delayer.run
       Thread.pass

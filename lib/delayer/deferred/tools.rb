@@ -64,5 +64,19 @@ module Delayer::Deferred
           raise ForeignCommandAborted.new("command aborted: #{args.join(' ')}", process: status) end
       }
     end
+
+    # _sec_ 秒後にsuccessとなるPromiseを返す
+    # ==== Args
+    # [sec] 待つ秒数
+    # ==== Return
+    # Deferred
+    def sleep(sec)
+      # pp [sec]
+      delayer.Promise.new(true).tap do |promise|
+        delayer.new(delay: sec) do
+          promise.call()
+        end
+      end
+    end
   end
 end

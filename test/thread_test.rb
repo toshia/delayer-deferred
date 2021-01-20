@@ -13,9 +13,9 @@ describe(Thread) do
     describe 'Exception in thread' do
       before do
         @error = Class.new(RuntimeError)
-        @thread = Thread.new {
+        @thread = Thread.new do
           raise @error
-        }
+        end
       end
 
       it 'should takes the exception' do
@@ -26,7 +26,7 @@ describe(Thread) do
     end
   end
 
-  it "defer with Deferred#next" do
+  it 'defer with Deferred#next' do
     thread = succeed = result = false
     uuid = SecureRandom.uuid
     eval_all_events do
@@ -36,13 +36,14 @@ describe(Thread) do
       }.next do |param|
         succeed = true
         result = param
-      end end
-    assert thread, "Thread did not executed."
-    assert succeed, "next block did not executed."
+      end
+    end
+    assert thread, 'Thread did not executed.'
+    assert succeed, 'next block did not executed.'
     assert_equal uuid, result
   end
 
-  it "defer with another Delayer" do
+  it 'defer with another Delayer' do
     thread = succeed = failure = result = false
     uuid = SecureRandom.uuid
     delayer = Delayer.generate_class
@@ -51,18 +52,20 @@ describe(Thread) do
       delayer.Deferred.Thread.new {
         thread = true
         uuid
-      }.next{ |param|
+      }.next { |param|
         succeed = true
         result = param
-      }.trap{ |exception|
-        failure = exception } end
+      }.trap do |exception|
+        failure = exception
+      end
+    end
     assert_equal false, failure, 'Unexpected failed.'
-    assert thread, "Thread did not executed."
-    assert succeed, "next block did not executed."
+    assert thread, 'Thread did not executed.'
+    assert succeed, 'next block did not executed.'
     assert_equal uuid, result
   end
 
-  it "error handling" do
+  it 'error handling' do
     delayer = Delayer.generate_class
     succeed = failure = recover = false
     uuid = SecureRandom.uuid
@@ -73,15 +76,17 @@ describe(Thread) do
         succeed = true
       }.trap { |value|
         failure = value
-      }.next {
-        recover = true } end
-    refute succeed, "Raised exception but it was executed successed route."
-    assert_instance_of RuntimeError, failure, "trap block takes incorrect value"
-    assert_equal uuid, failure.message, "trap block takes incorrect value"
-    assert recover, "next block did not executed when after trap"
+      }.next do
+        recover = true
+      end
+    end
+    refute succeed, 'Raised exception but it was executed successed route.'
+    assert_instance_of RuntimeError, failure, 'trap block takes incorrect value'
+    assert_equal uuid, failure.message, 'trap block takes incorrect value'
+    assert recover, 'next block did not executed when after trap'
   end
 
-  it "exception handling" do
+  it 'exception handling' do
     succeed = failure = recover = false
     delayer = Delayer.generate_class
     eval_all_events(delayer) do
@@ -91,90 +96,94 @@ describe(Thread) do
         succeed = true
       }.trap {
         failure = true
-      }.next {
-        recover = true } end
-    refute succeed, "Raised exception but it was executed successed route."
-    assert failure, "trap block did not executed"
-    assert recover, "next block did not executed when after trap"
+      }.next do
+        recover = true
+      end
+    end
+    refute succeed, 'Raised exception but it was executed successed route.'
+    assert failure, 'trap block did not executed'
+    assert recover, 'next block did not executed when after trap'
   end
 
-  it "wait end of Deferredable if Deferredable block returns Thread" do
+  it 'wait end of Deferredable if Deferredable block returns Thread' do
     result = failure = false
     delayer = Delayer.generate_class
     uuid = SecureRandom.uuid
     node = eval_all_events(delayer) do
-      delayer.Deferred.new.next{
-        delayer.Deferred.new.next{
-          delayer.Deferred.Thread.new{
+      delayer.Deferred.new.next {
+        delayer.Deferred.new.next do
+          delayer.Deferred.Thread.new do
             uuid
-          }
-        }
-      }.next{ |value|
+          end
+        end
+      }.next { |value|
         result = value
-      }.trap{ |exception|
-        failure = exception }
+      }.trap do |exception|
+        failure = exception
+      end
     end
-    assert_equal uuid, result, ->{ "[[#{node.graph_draw}]]" }
+    assert_equal uuid, result, -> { "[[#{node.graph_draw}]]" }
     assert_equal false, failure
   end
 
   describe 'Race conditions' do
-    it "calls Thread#next for running thread" do
+    it 'calls Thread#next for running thread' do
       thread = succeed = result = false
       uuid = SecureRandom.uuid
       eval_all_events do
         lock = true
-        th = Thread.new {
+        th = Thread.new do
           while lock; Thread.pass end
           thread = true
           uuid
-        }
+        end
         th.next do |param|
           succeed = true
           result = param
         end
         lock = false
       end
-      assert thread, "Thread did not executed."
-      assert succeed, "next block did not executed."
+      assert thread, 'Thread did not executed.'
+      assert succeed, 'next block did not executed.'
       assert_equal uuid, result
     end
 
-    it "calls Thread#next for stopped thread" do
+    it 'calls Thread#next for stopped thread' do
       thread = succeed = result = false
       uuid = SecureRandom.uuid
       eval_all_events do
-        th = Thread.new {
+        th = Thread.new do
           thread = true
           uuid
-        }
+        end
         while th.alive?; Thread.pass end
         th.next do |param|
           succeed = true
           result = param
         end
       end
-      assert thread, "Thread did not executed."
-      assert succeed, "next block did not executed."
+      assert thread, 'Thread did not executed.'
+      assert succeed, 'next block did not executed.'
       assert_equal uuid, result
     end
   end
 
-  it "wait ended Thread for +thread" do
+  it 'wait ended Thread for +thread' do
     result = failure = false
     delayer = Delayer.generate_class
     uuid1, uuid2, uuid3 = SecureRandom.uuid, SecureRandom.uuid, SecureRandom.uuid
     eval_all_events(delayer) do
-      delayer.Deferred.new.next{
+      delayer.Deferred.new.next {
         [
-          +delayer.Deferred.Thread.new{ uuid1 },
-          +delayer.Deferred.Thread.new{ uuid2 },
-          +delayer.Deferred.Thread.new{ uuid3 }
+          +delayer.Deferred.Thread.new { uuid1 },
+          +delayer.Deferred.Thread.new { uuid2 },
+          +delayer.Deferred.Thread.new { uuid3 }
         ]
-      }.next{ |value|
+      }.next { |value|
         result = value
-      }.trap{ |exception|
-        failure = exception }
+      }.trap do |exception|
+        failure = exception
+      end
     end
     assert_equal false, failure
     assert_instance_of Array, result

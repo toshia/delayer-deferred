@@ -9,8 +9,8 @@ describe(Enumerable) do
     @delayer = Delayer.generate_class
   end
 
-  describe "deach" do
-    it "iterate Array" do
+  describe 'deach' do
+    it 'iterate Array' do
       sum = 0
       eval_all_events(@delayer) do
         (1..10000).to_a.deach(@delayer) do |digit|
@@ -20,7 +20,7 @@ describe(Enumerable) do
       assert_equal 50005000, sum
     end
 
-    it "iterate infinite Enumerator" do
+    it 'iterate infinite Enumerator' do
       log = []
       finish = failure = nil
       @delayer = Delayer.generate_class(expire: 0.1)
@@ -30,29 +30,29 @@ describe(Enumerable) do
         loop do
           c = a + b
           yielder << a
-          a, b = b, c end end
-      Timeout.timeout(1) {
-        fib.deach(@delayer) {|digit|
+          a, b = b, c
+        end
+      end
+      Timeout.timeout(1) do
+        fib.deach(@delayer) { |digit|
           log << digit
-        }.next{
+        }.next {
           finish = true
-        }.trap {|exception|
+        }.trap do |exception|
           failure = exception
-        }
+        end
         @delayer.run
-      }
+      end
       refute failure
       refute finish, "Enumerable#deach won't call next block"
-      refute log.empty?, "Executed deach block"
+      refute log.empty?, 'Executed deach block'
       log_size = log.size
       sample_size = [156, log_size].min
-      assert_equal fib.take(sample_size), log.take(sample_size), "deach block takes collect arguments"
+      assert_equal fib.take(sample_size), log.take(sample_size), 'deach block takes collect arguments'
       @delayer.run
       refute failure
       refute finish, "Enumerable#deach won't call next block"
       assert log.size > log_size, "Restart iteration if call Delayer#run (first #{log_size} iterations, second #{log.size})"
     end
-
-
   end
 end

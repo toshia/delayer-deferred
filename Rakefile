@@ -1,5 +1,5 @@
-require "bundler/gem_tasks"
-require "rake/testtask"
+require 'bundler/gem_tasks'
+require 'rake/testtask'
 
 Rake::TestTask.new do |t|
   t.test_files = FileList['test/*_test.rb']
@@ -8,9 +8,9 @@ Rake::TestTask.new do |t|
 end
 
 task :benchmark do
-  FileList['test/*_benchmark.rb'].each{|f| load f }
+  FileList['test/*_benchmark.rb'].each { |f| load f }
 end
 
 task :profile do
-  FileList['test/*_profiler.rb'].each{|f| load f }
+  FileList['test/*_profiler.rb'].each { |f| load f }
 end

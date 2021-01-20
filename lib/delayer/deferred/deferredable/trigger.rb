@@ -1,7 +1,8 @@
 # -*- coding: utf-8 -*-
-require "delayer/deferred/deferredable/chainable"
-require "delayer/deferred/deferredable/node_sequence"
-require "delayer/deferred/response"
+
+require 'delayer/deferred/deferredable/chainable'
+require 'delayer/deferred/deferredable/node_sequence'
+require 'delayer/deferred/response'
 
 module Delayer::Deferred::Deferredable
 =begin rdoc
@@ -13,13 +14,13 @@ Promiseなど、親を持たず、自身がWorkerを作成できるもの。
 
     # Deferredを直ちに実行する。
     # このメソッドはスレッドセーフです。
-    def call(value = nil)
+    def call(value=nil)
       execute(Delayer::Deferred::Response::Ok.new(value))
     end
 
     # Deferredを直ちに失敗させる。
     # このメソッドはスレッドセーフです。
-    def fail(exception = nil)
+    def fail(exception=nil)
       execute(Delayer::Deferred::Response::Ng.new(exception))
     end
 

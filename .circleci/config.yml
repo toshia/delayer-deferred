@@ -26,15 +26,43 @@ jobs:
     - run:
         name: test
         command: bundle exec rake test
+
+  lint:
+    parameters:
+       ruby-version:
+         type: string
+    executor:
+      name: ruby
+      tag: << parameters.ruby-version >>
+    steps:
+    - checkout
+    - run:
+        name: Which bundler?
+        command: bundle -v
+    - run:
+        command: bundle install --path vendor/bundle
+    - run:
+        name: rubocop
+        command: bundle exec rubocop
+
 workflows:
   build:
     jobs:
-      - build:
-          name: 'ruby-2.5'
-          ruby-version: '2.5.7'
+      - lint:
+          name: 'lint'
+          ruby-version: '3.0.0'
       - build:
           name: 'ruby-2.6'
-          ruby-version: '2.6.5'
+          ruby-version: '2.6.6'
+          requires:
+            - 'lint'
       - build:
           name: 'ruby-2.7'
-          ruby-version: '2.7.0'
+          ruby-version: '2.7.2'
+          requires:
+            - 'lint'
+      - build:
+          name: 'ruby-3.0'
+          ruby-version: '3.0.0'
+          requires:
+            - 'lint'

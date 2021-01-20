@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
-require "delayer/deferred/request"
-require "delayer/deferred/response"
+
+require 'delayer/deferred/request'
+require 'delayer/deferred/response'
 
 module Delayer::Deferred
 =begin rdoc
@@ -34,8 +35,8 @@ response :: Delayer::Deferred::Response::Base Deferredに渡す値
         begin
           fiber.resume(deferred).accept_request(worker: self,
                                                 deferred: deferred)
-        rescue Delayer::Deferred::SequenceError => err
-          err.deferred = deferred
+        rescue Delayer::Deferred::SequenceError => e
+          e.deferred = deferred
           raise
         end
       end
@@ -71,7 +72,7 @@ response :: Delayer::Deferred::Response::Base Deferredに渡す値
     private
 
     def fiber
-      @fiber ||= Fiber.new{|response|
+      @fiber ||= Fiber.new { |response|
         loop do
           response = wait_and_activate(response)
           case response.value
@@ -79,26 +80,27 @@ response :: Delayer::Deferred::Response::Base Deferredに渡す値
             raise response.value
           end
         end
-      }.tap{|f| f.resume(@initial); @initial = nil }
+      }.tap do |f|
+        f.resume(@initial)
+        @initial = nil
+      end
     end
 
     def wait_and_activate(argument)
       response = catch(:success) do
         failed = catch(:__deferredable_fail) do
-          begin
-            if argument.value.is_a? Deferredable::Awaitable
-              throw :success, +argument.value
-            else
-              defer = Fiber.yield(Request::NEXT_WORKER)
-              res = defer.activate(argument)
-              if res.is_a? Delayer::Deferred::Deferredable::Awaitable
-                defer.add_awaited(res)
-              end
+          if argument.value.is_a? Deferredable::Awaitable
+            throw :success, +argument.value
+          else
+            defer = Fiber.yield(Request::NEXT_WORKER)
+            res = defer.activate(argument)
+            if res.is_a? Delayer::Deferred::Deferredable::Awaitable
+              defer.add_awaited(res)
             end
-            throw :success, res
-          rescue Exception => err
-            throw :__deferredable_fail, err
           end
+          throw :success, res
+        rescue Exception => e # rubocop:disable Lint/RescueException
+          throw :__deferredable_fail, e
         end
         Response::Ng.new(failed)
       end

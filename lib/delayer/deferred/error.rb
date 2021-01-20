@@ -5,6 +5,7 @@ module Delayer::Deferred
 
   class ForeignCommandAborted < Error
     attr_reader :process
+
     def initialize(message, process:)
       super(message)
       @process = process
@@ -13,6 +14,7 @@ module Delayer::Deferred
 
   SequenceError = Class.new(Error) do
     attr_accessor :deferred
+
     def initialize(message, deferred: nil)
       super(message)
       @deferred = deferred

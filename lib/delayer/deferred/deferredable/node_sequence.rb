@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
-require 'delayer/deferred/error'
 
-require 'thread'
+require 'delayer/deferred/error'
 
 module Delayer::Deferred::Deferredable
   module NodeSequence
@@ -14,7 +13,7 @@ module Delayer::Deferred::Deferredable
         @exceptions = Hash.new(Delayer::Deferred::SequenceError)
       end
 
-      def add(seq, flow = seq.name)
+      def add(seq, flow=seq.name)
         @map[flow] = seq
         self
       end
@@ -40,7 +39,7 @@ module Delayer::Deferred::Deferredable
     FRESH     = Sequence.new(:fresh)
     CONNECTED = Sequence.new(:connected)      # 子がいる、未実行
     RESERVED  = Sequence.new(:reserved)       # 実行キュー待ち
-    RESERVED_C= Sequence.new(:reserved)       # 実行キュー待ち(子がいる)
+    RESERVED_C = Sequence.new(:reserved) # 実行キュー待ち(子がいる)
     RUN       = Sequence.new(:run)            # 実行中
     RUN_C     = Sequence.new(:run)            # 実行中(子がいる)
     PASS      = Sequence.new(:pass)           # パス中
@@ -49,12 +48,12 @@ module Delayer::Deferred::Deferredable
     AWAIT_C   = Sequence.new(:await)          # Await中(子がいる)
     GRAFT     = Sequence.new(:graft)          # 戻り値がAwaitableの時
     GRAFT_C   = Sequence.new(:graft)          # 戻り値がAwaitableの時(子がいる)
-    CALL_CHILD= Sequence.new(:call_child)     # 完了、子がいる
+    CALL_CHILD = Sequence.new(:call_child) # 完了、子がいる
     STOP      = Sequence.new(:stop)           # 完了、子なし
     WAIT      = Sequence.new(:wait)           # 完了、オブザーバ登録済み
     BURST_OUT = Sequence.new(:burst_out)      # 完了、オブザーバ登録済み、子追加済み
     ROTTEN    = Sequence.new(:rotten).freeze  # 終了
-    GENOCIDE  = Sequence.new(:genocide).freeze# この地ではかつて大量虐殺があったという。
+    GENOCIDE  = Sequence.new(:genocide).freeze # この地ではかつて大量虐殺があったという。
 
     FRESH
       .add(CONNECTED, :get_child)
@@ -144,8 +143,7 @@ module Delayer::Deferred::Deferredable
       end
     end
 
-    def on_sequence_changed(old_seq, flow, new_seq)
-    end
+    def on_sequence_changed(old_seq, flow, new_seq); end
 
     def activated?
       ![FRESH, CONNECTED, RUN, RUN_C].include?(sequence)

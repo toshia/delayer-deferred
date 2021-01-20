@@ -2,7 +2,6 @@
 
 module Delayer::Deferred::Deferredable
   module Awaitable
-
     # _self_ が終了して結果が出るまで呼び出し側のDeferredを停止し、 _self_ の結果を返す。
     # 呼び出し側はDeferredブロック内でなければならないが、 _Deferred#next_ を使わずに
     # 直接戻り値を得ることが出来る。

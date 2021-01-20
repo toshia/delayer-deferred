@@ -5,6 +5,7 @@
 module Delayer::Deferred::Request
   class Base
     attr_reader :value
+
     def initialize(value)
       @value = value
     end

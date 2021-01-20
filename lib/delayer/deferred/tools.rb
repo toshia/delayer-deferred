@@ -48,7 +48,7 @@ module Delayer::Deferred
       end
       defer, *follow = *args
       defer.next do |res|
-        [res, *follow.map { |d| +d }]
+        [res, *follow.map(&:+@)]
       end
     end
 
@@ -62,7 +62,7 @@ module Delayer::Deferred
       delayer.Deferred.Thread.new {
         Process.waitpid2(Kernel.spawn(*args))
       }.next do |_pid, status|
-        if status && status.success?
+        if status&.success?
           status
         else
           raise ForeignCommandAborted.new("command aborted: #{args.join(' ')}", process: status) end

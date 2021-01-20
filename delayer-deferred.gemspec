@@ -30,4 +30,5 @@ Gem::Specification.new do |spec|
   spec.add_development_dependency 'guard'
   spec.add_development_dependency 'guard-shell'
   spec.add_development_dependency 'guard-rake'
+  spec.add_development_dependency 'rubocop'
 end

@@ -1,13 +1,16 @@
 # -*- coding: utf-8 -*-
+
 require 'delayer/deferred/error'
 
 module Delayer::Deferred
   module Tools
     def next(&proc)
-      new.next(&proc) end
+      new.next(&proc)
+    end
 
     def trap(&proc)
-      new.trap(&proc) end
+      new.trap(&proc)
+    end
 
     # 実行中のDeferredを失敗させる。raiseと違って、Exception以外のオブジェクトをtrap()に渡すことができる。
     # Deferredのnextとtrapの中でだけ呼び出すことができる。
@@ -16,7 +19,8 @@ module Delayer::Deferred
     # ==== Throw
     # :__deferredable_fail をthrowする
     def fail(value)
-      throw(:__deferredable_fail, value) end
+      throw(:__deferredable_fail, value)
+    end
 
     # 実行中のDeferredを、Delayerのタイムリミットが来ている場合に限り一旦中断する。
     # 長期に渡る可能性のある処理で、必要に応じて他のタスクを先に実行してもよい場合に呼び出す。
@@ -33,19 +37,19 @@ module Delayer::Deferred
     # Deferred
     def when(*args)
       args = args.flatten
-      return self.next{ [].freeze } if args.empty?
-      args.each_with_index{|d, index|
+      return self.next { [].freeze } if args.empty?
+      args.each_with_index do |d, index|
         unless d.is_a?(Deferredable::Chainable) || d.is_a?(Deferredable::Awaitable)
           raise TypeError, "Argument #{index} of Deferred.when must be #{Deferredable::Chainable}, but given #{d.class}"
         end
         if d.respond_to?(:has_child?) && d.has_child?
           raise "Already assigned child for argument #{index}"
         end
-      }
+      end
       defer, *follow = *args
-      defer.next{|res|
-        [res, *follow.map{|d| +d }]
-      }
+      defer.next do |res|
+        [res, *follow.map { |d| +d }]
+      end
     end
 
     # Kernel#systemを呼び出して、コマンドが成功たら成功するDeferredを返す。
@@ -57,12 +61,12 @@ module Delayer::Deferred
     def system(*args)
       delayer.Deferred.Thread.new {
         Process.waitpid2(Kernel.spawn(*args))
-      }.next{|_pid, status|
+      }.next do |_pid, status|
         if status && status.success?
           status
         else
           raise ForeignCommandAborted.new("command aborted: #{args.join(' ')}", process: status) end
-      }
+      end
     end
 
     # _sec_ 秒後にsuccessとなるPromiseを返す
@@ -74,7 +78,7 @@ module Delayer::Deferred
       # pp [sec]
       delayer.Promise.new(true).tap do |promise|
         delayer.new(delay: sec) do
-          promise.call()
+          promise.call
         end
       end
     end

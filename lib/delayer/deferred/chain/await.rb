@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
-require "delayer/deferred/chain/base"
+
+require 'delayer/deferred/chain/base'
 
 module Delayer::Deferred::Chain
   class Await < Base
@@ -28,7 +29,7 @@ module Delayer::Deferred::Chain
     end
 
     def node_name
-      "Await"
+      'Await'
     end
 
     def graph_shape

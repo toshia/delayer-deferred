@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
-require "delayer/deferred/deferredable/chainable"
-require "delayer/deferred/deferredable/node_sequence"
+
+require 'delayer/deferred/deferredable/chainable'
+require 'delayer/deferred/deferredable/node_sequence'
 
 module Delayer::Deferred::Chain
   class Base
@@ -8,7 +9,7 @@ module Delayer::Deferred::Chain
     include Delayer::Deferred::Deferredable::Chainable
 
     def initialize(&proc)
-      fail Error, "Delayer::Deferred::Chain can't create instance." if self.class == Delayer::Deferred::Chain::Base
+      fail Error, "Delayer::Deferred::Chain can't create instance." if instance_of?(Delayer::Deferred::Chain::Base)
       @proc = proc
     end
 
@@ -32,4 +33,3 @@ module Delayer::Deferred::Chain
     end
   end
 end
-

@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
-require "delayer/deferred/tools"
-require "delayer/deferred/deferredable/trigger"
+
+require 'delayer/deferred/tools'
+require 'delayer/deferred/deferredable/trigger'
 
 module Delayer::Deferred
   class Promise
@@ -8,7 +9,7 @@ module Delayer::Deferred
     include Deferredable::Trigger
 
     class << self
-      def new(stop=false, name: caller_locations(1,1).first.to_s, &block)
+      def new(stop=false, name: caller_locations(1, 1).first.to_s, &block)
         result = promise = super(name: name)
         result = promise.next(&block) if block_given?
         promise.call(true) unless stop
@@ -16,7 +17,8 @@ module Delayer::Deferred
       end
 
       def Thread
-        @thread_class ||= gen_thread_class end
+        @thread_class ||= gen_thread_class
+      end
 
       def Promise
         self
@@ -27,7 +29,7 @@ module Delayer::Deferred
       end
 
       def to_s
-        "#{self.delayer}.Promise"
+        "#{delayer}.Promise"
       end
 
       private

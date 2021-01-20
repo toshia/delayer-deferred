@@ -1,7 +1,8 @@
 # -*- coding: utf-8 -*-
-require "delayer/deferred/deferredable/awaitable"
-require "delayer/deferred/deferredable/graph"
-require "delayer/deferred/deferredable/node_sequence"
+
+require 'delayer/deferred/deferredable/awaitable'
+require 'delayer/deferred/deferredable/graph'
+require 'delayer/deferred/deferredable/node_sequence'
 
 module Delayer::Deferred::Deferredable
   module Chainable
@@ -75,7 +76,7 @@ module Delayer::Deferred::Deferredable
     end
 
     def has_awaited?
-      not awaited.empty?
+      !awaited.empty?
     end
 
     def add_awaited(awaitable)
@@ -117,7 +118,7 @@ module Delayer::Deferred::Deferredable
     private
 
     def call_child_observer
-      if has_child? and defined?(@child_observer)
+      if has_child? && defined?(@child_observer)
         change_sequence(:called)
         @child_observer.push(@child)
       end
@@ -128,9 +129,9 @@ module Delayer::Deferred::Deferredable
       when NodeSequence::BURST_OUT
         call_child_observer
       when NodeSequence::GENOCIDE
-        @parent.cancel if defined?(@parent) and @parent
+        @parent.cancel if defined?(@parent) && @parent
       when NodeSequence::RESERVED_C, NodeSequence::RUN_C, NodeSequence::PASS_C, NodeSequence::AWAIT_C, NodeSequence::GRAFT_C
-        if !has_child?
+        unless has_child?
           notice "child: #{@child.inspect}"
           raise Delayer::Deferred::SequenceError.new("Sequence changed `#{old_seq.name}' to `#{flow}', but it has no child")
         end
@@ -143,13 +144,12 @@ module Delayer::Deferred::Deferredable
     end
 
     def graph_mynode
-      if defined?(@seq_logger)
-        label = "#{node_name}\n(#{@seq_logger.map(&:name).join('→')})"
-      else
-        label = "#{node_name}\n(#{sequence.name})"
-      end
+      label = if defined?(@seq_logger)
+                "#{node_name}\n(#{@seq_logger.map(&:name).join('→')})"
+              else
+                "#{node_name}\n(#{sequence.name})"
+              end
       "#{__id__} [shape=#{graph_shape},label=#{label.inspect}]"
     end
-
   end
 end

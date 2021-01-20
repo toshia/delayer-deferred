@@ -26,14 +26,14 @@ graphvizによってChainableなDeferredをDOT言語形式でダンプする機�
     # ==== Return
     # [String] DOT言語によるグラフ
     # [output:] 引数 output: に指定されたオブジェクト
-    def graph(child_only: false, output: String.new)
+    def graph(child_only: false, output: '')
       if child_only
         output << "digraph Deferred {\n".freeze
-        Enumerator.new{ |yielder|
+        Enumerator.new { |yielder|
           graph_child(output: yielder)
-        }.lazy.each{|l|
+        }.lazy.each do |l|
           output << "\t#{l}\n"
-        }
+        end
         output << '}'.freeze
       else
         ancestor.graph(child_only: true, output: output)
@@ -49,14 +49,14 @@ graphvizによってChainableなDeferredをDOT言語形式でダンプする機�
     # [Object] ブロックが指定された場合。ブロックの実行結果。
     def graph_save(permanent: false, &block)
       if block
-        Tempfile.open{|tmp|
+        Tempfile.open do |tmp|
           graph(output: tmp)
           tmp.seek(0)
           block.(tmp)
-        }
+        end
       else
         tmp = Tempfile.open
-        graph(output: tmp).tap{|t|t.seek(0)}
+        graph(output: tmp).tap { |t| t.seek(0) }
       end
     end
 
@@ -88,7 +88,7 @@ graphvizによってChainableなDeferredをDOT言語形式でダンプする機�
           if awaitable.is_a?(Delayer::Deferred::Deferredable::Chainable)
             awaitable.ancestor.graph_child(output: output)
           else
-            label = "#{awaitable.class}"
+            label = awaitable.class.to_s
             output << "#{awaitable.__id__} [shape=oval,label=#{label.inspect}]"
           end
           output << "#{awaitable.__id__} -> #{__id__} [label = \"await\", style = \"dotted\"]"
@@ -113,6 +113,5 @@ graphvizによってChainableなDeferredをDOT言語形式でダンプする機�
       label = "#{node_name}\n(#{sequence.name})"
       "#{__id__} [shape=#{graph_shape},label=#{label.inspect}]"
     end
-
   end
 end

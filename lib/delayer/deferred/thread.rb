@@ -42,12 +42,12 @@ class Thread
     promise
   end
 
-  def __promise_callback(tt, promise)
-    result = tt.value
+  def __promise_callback(thread, promise)
+    result = thread.value
     self.class.delayer.new do
       promise.call(result)
     end
-  rescue Exception => e
+  rescue Exception => e # rubocop:disable Lint/RescueException
     self.class.delayer.new do
       promise.fail(e)
     end

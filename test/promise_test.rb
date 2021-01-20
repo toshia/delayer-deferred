@@ -22,7 +22,7 @@ describe(Delayer::Deferred::Promise) do
 
     describe 'with block' do
       before do
-        @promise = @delayer.Promise.new { ; }
+        @promise = @delayer.Promise.new { ; } # Empty promise for test
       end
 
       it 'was generated' do

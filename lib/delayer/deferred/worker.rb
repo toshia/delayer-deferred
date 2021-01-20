@@ -80,7 +80,10 @@ response :: Delayer::Deferred::Response::Base Deferredに渡す値
             raise response.value
           end
         end
-      }.tap { |f| f.resume(@initial); @initial = nil }
+      }.tap do |f|
+        f.resume(@initial)
+        @initial = nil
+      end
     end
 
     def wait_and_activate(argument)
@@ -96,7 +99,7 @@ response :: Delayer::Deferred::Response::Base Deferredに渡す値
             end
           end
           throw :success, res
-        rescue Exception => e
+        rescue Exception => e # rubocop:disable Lint/RescueException
           throw :__deferredable_fail, e
         end
         Response::Ng.new(failed)

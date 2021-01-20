@@ -27,7 +27,7 @@ describe(Delayer::Deferred) do
 
   describe 'Chain' do
     it 'should include ' do
-      promise = Delayer::Deferred::Promise.new.next { ; }
+      promise = Delayer::Deferred::Promise.new.next { ; } # Empty promise for test
       assert_includes promise.graph, 'graph_test.rb', -> { "[[#{promise.graph_draw}]]" }
     end
   end

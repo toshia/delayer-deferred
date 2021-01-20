@@ -5,7 +5,7 @@ require 'delayer/deferred'
 require 'ruby-prof'
 require_relative 'testutils'
 
-extend TestUtils
+extend TestUtils # rubocop:disable Style/MixinUsage
 n = 1000
 
 RubyProf.start

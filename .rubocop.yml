@@ -16,6 +16,8 @@ Layout/LineLength:
     - test/**/*.rb
 
 Metrics/ModuleLength:
+  Max: 109
+  CountAsOne: ['array', 'hash', 'heredoc']
   Exclude:
     - test/**/*.rb
 

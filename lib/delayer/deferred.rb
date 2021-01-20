@@ -34,14 +34,14 @@ module Delayer
   end
 
   module Extend
-    def Promise
-      @promise ||= begin
-                     the_delayer = self
-                     Class.new(::Delayer::Deferred::Promise) do
-                       define_singleton_method(:delayer) do
-                         the_delayer
-                       end
-                     end end
+    def Promise # rubocop:disable Naming/MethodName
+      @promise ||= yield_self do |this| # rubocop:disable Naming/MemoizedInstanceVariableName
+        Class.new(::Delayer::Deferred::Promise) do
+          define_singleton_method(:delayer) do
+            this
+          end
+        end
+      end
     end
     alias :Deferred :Promise
     # deprecate :Deferred, "Promise", 2018, 03

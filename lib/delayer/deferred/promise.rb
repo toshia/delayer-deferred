@@ -9,9 +9,9 @@ module Delayer::Deferred
     include Deferredable::Trigger
 
     class << self
-      def new(stop=false, name: caller_locations(1, 1).first.to_s, &block) # rubocop:disable Style/OptionalBooleanParameter
+      def new(stop=false, name: caller_locations(1, 1).first.to_s, parallel: false, &block) # rubocop:disable Style/OptionalBooleanParameter
         result = promise = super(name: name)
-        result = promise.next(&block) if block_given?
+        result = promise.next(parallel: parallel, &block) if block
         promise.call(true) unless stop
         result
       end

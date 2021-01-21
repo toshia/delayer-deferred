@@ -15,8 +15,8 @@ module Delayer
       # 真ならデバッグ情報を集める
       attr_accessor :debug
 
-      def new(*rest, name: caller_locations(1, 1).first.to_s, &block)
-        super(*rest, name: name, &block)
+      def new(*rest, name: caller_locations(1, 1).first.to_s, parallel: false, &block)
+        super(*rest, name: name, parallel: parallel, &block)
       end
 
       def method_missing(*rest, **kwrest, &block)

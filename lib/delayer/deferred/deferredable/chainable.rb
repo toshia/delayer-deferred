@@ -15,9 +15,18 @@ module Delayer::Deferred::Deferredable
     # このDeferredが成功した場合の処理を追加する。
     # 新しいDeferredのインスタンスを返す。
     # このメソッドはスレッドセーフです。
+    # _parallel:_ にtrueを指定した場合、Ractorを新しく作成し、その中で _&proc_ を実行します。
     # TODO: procが空のとき例外を発生させる
-    def next(&proc)
-      add_child(Delayer::Deferred::Chain::Next.new(&proc))
+    def next(parallel: false, &proc)
+      if parallel
+        add_child(
+          Delayer::Deferred::Chain::Next.new do |payload|
+            Ractor.new(payload, &proc).take
+          end
+        )
+      else
+        add_child(Delayer::Deferred::Chain::Next.new(&proc))
+      end
     end
     alias deferred next
 

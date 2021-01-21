@@ -13,9 +13,20 @@ class Thread
   # このDeferredが成功した場合の処理を追加する。
   # 新しいDeferredのインスタンスを返す。
   # このメソッドはスレッドセーフです。
+  # _parallel:_ にtrueを指定した場合、Ractorを新しく作成し、その中で _&proc_ を実行します。
   # TODO: procが空のとき例外を発生させる
-  def next(name: caller_locations(1, 1).first.to_s, &proc)
-    add_child(Delayer::Deferred::Chain::Next.new(&proc), name: name)
+  def next(parallel: false, &proc)
+    if parallel
+      add_child(
+        Delayer::Deferred::Chain::Next.new do |payload|
+          Thread.new do
+            Ractor.new(payload, &proc).take
+          end
+        end
+      )
+    else
+      add_child(Delayer::Deferred::Chain::Next.new(&proc))
+    end
   end
   alias deferred next
 
@@ -23,8 +34,18 @@ class Thread
   # 新しいDeferredのインスタンスを返す。
   # このメソッドはスレッドセーフです。
   # TODO: procが空のとき例外を発生させる
-  def trap(name: caller_locations(1, 1).first.to_s, &proc)
-    add_child(Delayer::Deferred::Chain::Trap.new(&proc), name: name)
+  def trap(parallel: false, &proc)
+    if parallel
+      add_child(
+        Delayer::Deferred::Chain::Trap.new do |payload|
+          Thread.new do
+            Ractor.new(payload, &proc).take
+          end
+        end
+      )
+    else
+      add_child(Delayer::Deferred::Chain::Trap.new(&proc))
+    end
   end
   alias error trap
 

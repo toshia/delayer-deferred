@@ -13,10 +13,10 @@ end
 require 'minitest'
 
 module Minitest::Assertions
-  def assert_equal_deferred(expect, defer, message = nil)
+  def assert_equal_deferred(expect, message = nil, &defer)
     result = exception = nil
     eval_all_events do
-      defer.next { |r|
+      defer.call.next { |r|
         result = r
       }.trap do |exc|
         exception = exc
@@ -26,10 +26,10 @@ module Minitest::Assertions
     assert_equal expect, result, message
   end
 
-  def assert_fail_deferred(comparator, defer, message = nil)
+  def assert_fail_deferred(comparator, message = nil, &defer)
     result = exception = nil
     eval_all_events do
-      defer.next { |r|
+      defer.call.next { |r|
         result = r
       }.trap do |exc|
         exception = exc

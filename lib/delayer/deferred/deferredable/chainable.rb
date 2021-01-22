@@ -19,13 +19,7 @@ module Delayer::Deferred::Deferredable
     # TODO: procが空のとき例外を発生させる
     def next(parallel: false, &proc)
       if parallel
-        add_child(
-          Delayer::Deferred::Chain::Next.new do |payload|
-            Thread.new do
-              Ractor.new(payload, &proc).take
-            end
-          end
-        )
+        add_child(Delayer::Deferred::Chain::RactorChainNext.new(&proc))
       else
         add_child(Delayer::Deferred::Chain::Next.new(&proc))
       end
@@ -38,13 +32,7 @@ module Delayer::Deferred::Deferredable
     # TODO: procが空のとき例外を発生させる
     def trap(parallel: false, &proc)
       if parallel
-        add_child(
-          Delayer::Deferred::Chain::Trap.new do |payload|
-            Thread.new do
-              Ractor.new(payload, &proc).take
-            end
-          end
-        )
+        add_child(Delayer::Deferred::Chain::RactorChainTrap.new(&proc))
       else
         add_child(Delayer::Deferred::Chain::Trap.new(&proc))
       end

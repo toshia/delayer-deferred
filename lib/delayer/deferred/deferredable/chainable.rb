@@ -17,11 +17,11 @@ module Delayer::Deferred::Deferredable
     # このメソッドはスレッドセーフです。
     # _parallel:_ にtrueを指定した場合、Ractorを新しく作成し、その中で _&proc_ を実行します。
     # TODO: procが空のとき例外を発生させる
-    def next(parallel: false, &proc)
+    def next(*args, parallel: false, &proc)
       if parallel
-        add_child(Delayer::Deferred::Chain::RactorChainNext.new(&proc))
+        add_child(Delayer::Deferred::Chain::RactorChainNext.new(*args, &proc))
       else
-        add_child(Delayer::Deferred::Chain::Next.new(&proc))
+        add_child(Delayer::Deferred::Chain::Next.new(*args, &proc))
       end
     end
     alias deferred next
@@ -30,11 +30,11 @@ module Delayer::Deferred::Deferredable
     # 新しいDeferredのインスタンスを返す。
     # このメソッドはスレッドセーフです。
     # TODO: procが空のとき例外を発生させる
-    def trap(parallel: false, &proc)
+    def trap(*args, parallel: false, &proc)
       if parallel
-        add_child(Delayer::Deferred::Chain::RactorChainTrap.new(&proc))
+        add_child(Delayer::Deferred::Chain::RactorChainTrap.new(*args, &proc))
       else
-        add_child(Delayer::Deferred::Chain::Trap.new(&proc))
+        add_child(Delayer::Deferred::Chain::Trap.new(*args, &proc))
       end
     end
     alias error trap

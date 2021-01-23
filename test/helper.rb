@@ -13,7 +13,7 @@ end
 require 'minitest'
 
 module Minitest::Assertions
-  def assert_equal_deferred(expect, message = nil, delayer: Delayer.default, &defer)
+  def assert_equal_deferred(expect, message=nil, delayer: Delayer.default, &defer)
     raise 'Delayer not set!' unless delayer
     result = exception = nil
     eval_all_events(delayer) do
@@ -23,11 +23,11 @@ module Minitest::Assertions
         exception = exc
       end
     end
-    assert_equal nil, exception&.full_message(highlight: false)#, 'except success, but failed.'
+    assert_nil exception&.full_message(highlight: false) # , 'except success, but failed.'
     assert_equal expect, result, message
   end
 
-  def assert_fail_deferred(comparator, message = nil, delayer: Delayer.default, &defer)
+  def assert_fail_deferred(comparator, message=nil, delayer: Delayer.default, &defer)
     result = exception = nil
     eval_all_events(delayer) do
       defer.call.next { |r|

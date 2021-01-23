@@ -4,12 +4,18 @@ require 'delayer/deferred/chain/base'
 
 module Delayer::Deferred::Chain
   class RactorChain < Base
+    def initialize(*args, &proc)
+      super(&proc)
+      @args = args.freeze
+    end
+
     def activate(response)
       deferred = ancestor.class.delayer.Deferred
       change_sequence(:activate)
       if evaluate?(response)
         deferred.Thread.new do
-          Ractor.new(response.value, &@proc).take
+          @args, args = nil, @args
+          Ractor.new(response.value, *args, &@proc).take
         end
       else
         response
